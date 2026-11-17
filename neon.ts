@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { defineConfig } from "@neon/config/v1"
 
 export default defineConfig({
@@ -8,7 +9,7 @@ export default defineConfig({
       allowedOrigins: [
         "http://127.0.0.1:5173",
         "http://localhost:5173",
-        "https://one-million-boxes.vercel.app",
+        "https://one-million-boxes-wheat.vercel.app",
       ],
     },
   },

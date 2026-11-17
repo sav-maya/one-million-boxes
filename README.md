@@ -151,8 +151,14 @@ same trusted Wi-Fi network:
 1. Find your computer's LAN address, for example `192.168.1.20`. `pnpm dev`
    prints it when you start it with `DEV_HOST=0.0.0.0`.
 2. Add `http://<LAN-IP>:5173` to `preview.realtime.allowedOrigins` in
-   [`neon.ts`](neon.ts) and apply it with `pnpm exec neon deploy`. Realtime
-   rejects browsers from origins that aren't listed.
+   [`neon.ts`](neon.ts) and apply it. Realtime rejects browsers from origins
+   that aren't listed. Changing origins needs `--update-existing`, and
+   `--no-env-pull` leaves your `.env.local` as it is:
+
+   ```sh
+   pnpm exec neon deploy --no-env-pull --update-existing
+   ```
+
 3. Start the app on all interfaces:
 
    ```sh
@@ -161,8 +167,8 @@ same trusted Wi-Fi network:
 
 4. Open `http://<LAN-IP>:5173` on the phone. The API stays on `127.0.0.1`;
    Vite proxies `/api` to it.
-5. When you're done, remove the LAN origin from `neon.ts` and run
-   `pnpm exec neon deploy` again.
+5. When you're done, remove the LAN origin from `neon.ts` and run the same
+   deploy command again.
 
 Only do this on a network you trust: anyone on it can reach the dev server while
 it runs. Chrome on Android only offers to install the app over HTTPS, so test
