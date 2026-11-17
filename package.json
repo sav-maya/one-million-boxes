@@ -19,6 +19,7 @@
     "test:realtime": "tsx scripts/test-realtime.ts",
     "db:reset": "tsx scripts/reset-game.ts",
     "simulate": "tsx scripts/simulate-game.ts",
+    "icons": "tsx scripts/generate-icons.ts",
     "setup:local-realtime": "tsx scripts/setup-local-realtime.ts",
     "format": "prettier . --write && tsx scripts/format-sql.ts --write",
     "format:check": "prettier . --check && tsx scripts/format-sql.ts --check",

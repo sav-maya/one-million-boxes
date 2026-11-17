@@ -7,10 +7,12 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
-    <!-- Theme color for browser chrome (matches header/footer) -->
-    <meta name="theme-color" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#ffffff" />
-    <!-- iOS specific meta tags -->
+    <!-- Theme color for browser chrome (matches the header) -->
+    <meta name="theme-color" content="#FFFFFF" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#FFFFFF" />
+    <!-- Installable app: manifest plus the iOS equivalents -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="1M Boxes" />
@@ -21,7 +23,7 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link
       rel="preload"
       href="/fonts/Recursive-Casual-Latin.woff2"

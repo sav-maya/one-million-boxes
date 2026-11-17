@@ -386,6 +386,13 @@ A changed generation clears browser quota/personal-score caches and reloads the
 page. The signed player/team cookie is retained. Previous games and individual
 moves are not archived.
 
+The frontend is installable. `public/manifest.webmanifest` opens `/`
+standalone with the header colour as the theme, and `pnpm icons`
+(`scripts/generate-icons.ts`) renders the apple-touch, 192px, 512px, maskable
+and favicon PNGs from `artwork/logo-mark.svg`. There is deliberately no service
+worker: a cached bundle could fall out of step with the API it ships with, and
+a live board has nothing useful to show offline.
+
 Vercel serves the static frontend and routes `/api/*` to `api/index.ts`, which
 creates the shared Hono application from `server/app.ts`. The Node.js function
 reuses a five-connection Postgres pool against Neon's pooled endpoint; Vercel
