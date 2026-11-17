@@ -14,24 +14,12 @@
 
 /* ============================================
    Safe Area Insets (notched devices)
-   ============================================ */
-@supports (padding: max(0px)) {
-  .game-layout {
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-  }
-
-  .header {
-    padding-left: max(12px, env(safe-area-inset-left));
-    padding-right: max(12px, env(safe-area-inset-right));
-  }
-
-  .world-view-wrapper {
-    right: max(var(--minimap-margin), env(safe-area-inset-right));
-  }
-}
+   ============================================
+   The board runs edge to edge under the notch and home indicator. The header
+   and every edge-pinned control (moves dial, learn-more link, minimap, zoom
+   and sound buttons, floating scores, toasts) add the --safe-* insets from
+   global.css in their own stylesheets, so they clear the notch and home
+   indicator in portrait and landscape. */
 
 /* ============================================
    Touch-Specific Styles

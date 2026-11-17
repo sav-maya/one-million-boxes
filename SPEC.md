@@ -295,7 +295,11 @@ badges and score chips keep the original team colours; score chips echo claimed
 boxes, and the minimap has a labelled frame. The UI keeps the Inter font and
 Neon accent without changing board rendering or the original logo.
 
-The board fills the area below the header. The move dial and learn-more link
+The board fills the area below the header. On notched phones it runs edge to
+edge under the notch and home indicator, while the header and every
+edge-pinned control add the `env(safe-area-inset-*)` insets, including left and
+right insets in landscape. Overscroll is disabled on the page, so a downward pan
+never triggers pull-to-refresh. The move dial and learn-more link
 float over its bottom edge without a footer bar; gaps between controls still
 accept drawing input. The minimap and vertical zoom buttons share the moves
 dial’s bottom alignment on wider screens. On narrow screens the learn-more

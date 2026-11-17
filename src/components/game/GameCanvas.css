@@ -9,6 +9,7 @@
 
 .game-canvas {
   display: block;
+  touch-action: none;
 }
 
 /* Pop animation for other players' moves */

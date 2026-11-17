@@ -1,6 +1,6 @@
 .error-toast {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(80px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;

@@ -21,6 +21,7 @@
   width: 90%;
   max-width: 480px;
   max-height: 90vh;
+  max-height: 90dvh;
   z-index: 101;
   animation: about-popup-slide-in 200ms ease-out;
   display: flex;
@@ -319,6 +320,7 @@
   .about-dialog-popup {
     width: 94%;
     max-height: 85vh;
+    max-height: 85dvh;
   }
 
   .about-dialog-title {

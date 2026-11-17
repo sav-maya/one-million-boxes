@@ -1,9 +1,9 @@
 .header {
-  height: var(--header-height);
+  height: calc(var(--header-height) + var(--safe-top));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding: var(--safe-top) max(16px, var(--safe-right)) 0 max(16px, var(--safe-left));
   background: var(--color-surface);
   border-bottom: 2px solid var(--color-border);
   z-index: 10;
@@ -89,11 +89,11 @@
   /* Show floating scoreboard */
   .floating-scoreboard {
     display: flex;
-    max-width: calc(100% - 16px);
+    max-width: calc(100% - 16px - var(--safe-left) - var(--safe-right));
     overflow-x: auto;
     scrollbar-width: thin;
     position: absolute;
-    top: calc(var(--header-height) + 8px);
+    top: calc(var(--header-height) + var(--safe-top) + 8px);
     left: 50%;
     transform: translateX(-50%);
     background: rgba(255, 255, 255, 0.95);
@@ -109,7 +109,7 @@
 /* Tablet/Mobile: icon-only buttons and layout changes */
 @media (max-width: 768px) {
   .header {
-    padding: 0 12px;
+    padding: var(--safe-top) max(12px, var(--safe-right)) 0 max(12px, var(--safe-left));
     gap: 6px;
   }
 
