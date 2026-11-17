@@ -178,7 +178,7 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
   // Every subscription error is followed by an automatic reconnect.
   const handleError = useCallback((err: Error) => {
     console.warn(`[GameState] Realtime error:`, err.message)
-    setError(`Lost the live connection to the board. Reconnecting now.`)
+    setError(`Couldn't connect to the live board. Trying again now.`)
   }, [])
 
   // Clear the recharge prompt as soon as another move becomes available.
