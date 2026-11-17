@@ -87,6 +87,6 @@ test("muting persists, rejected moves do not chime, and empty moves stay silent"
   releaseQuota()
   await expect(page.getByTestId("quota-meter")).toContainText("0")
   await canvas.click({ position })
-  await expect(page.getByTestId("error-toast")).toContainText("Out of moves!")
+  await expect(page.getByTestId("error-toast")).toContainText("Out of moves.")
   expect(await audioStarts(page)).toEqual([])
 })

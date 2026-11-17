@@ -95,7 +95,7 @@ export function WorldView() {
         const xPercent = (boxX / W) * 100
         const yPercent = (boxY / W) * 100
 
-        // Get team color (teamId is 0-based: 0=RED, 1=BLUE, 2=GREEN, 3=YELLOW)
+        // Get team color (teamId is 0-based, in shared/teams.ts order)
         const teamName = TEAMS[event.teamId]
         const color = TEAM_COLORS[teamName].primary
 

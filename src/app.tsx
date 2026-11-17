@@ -4,6 +4,7 @@ import { QuotaProvider } from "./contexts/quota-context"
 import { GameStateProvider } from "./contexts/game-state-context"
 import { GamePage } from "./components/GamePage"
 import { DebugOverlay } from "./components/ui/DebugOverlay"
+import { TEAMS } from "../shared/teams"
 import type { TeamName } from "../shared/teams"
 import "./styles/global.css"
 
@@ -29,7 +30,7 @@ export function App() {
         console.error(`Failed to load team:`, err)
         // Fallback to a default team
         if (mounted) {
-          setTeamData({ team: `RED`, teamId: 0 })
+          setTeamData({ team: TEAMS[0], teamId: 0 })
           setLoading(false)
         }
       }

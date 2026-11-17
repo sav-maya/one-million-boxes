@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
-import { TEAM_COLORS, teamNameToId } from "../../../../shared/teams"
+import { TEAMS, TEAM_COLORS, TEAM_LABELS, teamNameToId } from "../../../../shared/teams"
 import { useTeam } from "../../../../src/contexts/team-context"
 import { TeamBadge } from "../../../../src/components/ui/TeamBadge"
 import type { TeamName } from "../../../../shared/teams"
@@ -12,71 +12,32 @@ vi.mock(`../../../../src/contexts/team-context`, () => ({
 const mockUseTeam = vi.mocked(useTeam)
 
 describe(`TeamBadge`, () => {
-  it(`displays team name with proper capitalization`, () => {
+  it(`displays the team's display name`, () => {
     mockUseTeam.mockReturnValue({
-      team: `RED`,
+      team: `FOX`,
       teamId: 0,
     })
 
     render(<TeamBadge />)
 
-    expect(screen.getByTestId(`team-name`)).toHaveTextContent(`Red`)
+    expect(screen.getByTestId(`team-name`)).toHaveTextContent(`Fox`)
   })
 
-  it(`displays correct color dot for RED team`, () => {
-    mockUseTeam.mockReturnValue({
-      team: `RED`,
-      teamId: 0,
-    })
+  it.each(TEAMS)(`displays the correct color dot for %s`, (team) => {
+    mockUseTeam.mockReturnValue({ team, teamId: teamNameToId(team) })
 
     render(<TeamBadge />)
 
     const dot = screen.getByTestId(`team-color-dot`)
-    expect(dot).toHaveStyle({ background: TEAM_COLORS.RED.primary })
-  })
-
-  it(`displays correct color dot for BLUE team`, () => {
-    mockUseTeam.mockReturnValue({
-      team: `BLUE`,
-      teamId: 1,
-    })
-
-    render(<TeamBadge />)
-
-    const dot = screen.getByTestId(`team-color-dot`)
-    expect(dot).toHaveStyle({ background: TEAM_COLORS.BLUE.primary })
-  })
-
-  it(`displays correct color dot for GREEN team`, () => {
-    mockUseTeam.mockReturnValue({
-      team: `GREEN`,
-      teamId: 2,
-    })
-
-    render(<TeamBadge />)
-
-    const dot = screen.getByTestId(`team-color-dot`)
-    expect(dot).toHaveStyle({ background: TEAM_COLORS.GREEN.primary })
-  })
-
-  it(`displays correct color dot for YELLOW team`, () => {
-    mockUseTeam.mockReturnValue({
-      team: `YELLOW`,
-      teamId: 3,
-    })
-
-    render(<TeamBadge />)
-
-    const dot = screen.getByTestId(`team-color-dot`)
-    expect(dot).toHaveStyle({ background: TEAM_COLORS.YELLOW.primary })
+    expect(dot).toHaveStyle({ background: TEAM_COLORS[team].primary })
   })
 
   it(`renders all team variations correctly`, () => {
     const teams: Array<{ team: TeamName; display: string }> = [
-      { team: `RED`, display: `Red Team` },
-      { team: `BLUE`, display: `Blue Team` },
-      { team: `GREEN`, display: `Green Team` },
-      { team: `YELLOW`, display: `Yellow Team` },
+      { team: `FOX`, display: `Fox team` },
+      { team: `JAY`, display: `Jay team` },
+      { team: `FROG`, display: `Frog team` },
+      { team: `FLAMINGO`, display: `Flamingo team` },
     ]
 
     for (const { team, display } of teams) {
@@ -93,9 +54,14 @@ describe(`TeamBadge`, () => {
     }
   })
 
+  it(`keeps exactly four teams with labels`, () => {
+    expect(TEAMS).toHaveLength(4)
+    for (const team of TEAMS) expect(TEAM_LABELS[team]).toBeTruthy()
+  })
+
   it(`has correct test IDs for accessibility`, () => {
     mockUseTeam.mockReturnValue({
-      team: `RED`,
+      team: `FOX`,
       teamId: 0,
     })
 

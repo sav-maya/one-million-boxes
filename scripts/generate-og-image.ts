@@ -8,17 +8,19 @@
  * Output:
  *   public/og-image.png (1200x630)
  *
- * Creates an epic hand-drawn style card with a large grid bleeding off all edges,
- * colored edges matching the game style, and proper box completion rules.
+ * Creates a hand-drawn style card: a sketched grid bleeding off the left edges,
+ * coloured edges matching the game style and proper box completion rules,
+ * beside a plain panel with the logo, tagline and team legend.
  */
 
-import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { existsSync } from "node:fs"
-import { execSync } from "node:child_process"
+import { readFile, writeFile } from "node:fs/promises"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { Resvg } from "@resvg/resvg-js"
 import satori from "satori"
+import { TEAMS, TEAM_COLORS as SHARED_TEAM_COLORS, TEAM_LABELS } from "../shared/teams"
+import type { TeamName } from "../shared/teams"
+import { BOARD_COLOR, INK_COLOR, TAGLINE } from "../shared/brand"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, `..`)
@@ -27,21 +29,18 @@ const ROOT = join(__dirname, `..`)
 const WIDTH = 1200
 const HEIGHT = 630
 
-// Team colors from shared/teams.ts
-const TEAM_COLORS = {
-  RED: `#E53935`,
-  BLUE: `#1E88E5`,
-  GREEN: `#43A047`,
-  YELLOW: `#FDD835`,
-} as const
+const TEAM_COLORS = Object.fromEntries(
+  TEAMS.map((team) => [team, SHARED_TEAM_COLORS[team].primary]),
+) as Record<TeamName, string>
 
-type TeamColor = keyof typeof TEAM_COLORS
+type TeamColor = TeamName
 
-// Grid styling
-const DOT_COLOR = `#5a5a4a`
-const GRID_LINE_COLOR = `#d0d0c0` // Light gray for unplaced edges
-const BG_COLOR = `#f5f5dc`
-const MUTED_COLOR = `#6b6b5a`
+// Grid styling, matching the board's grid lines and dots
+const DOT_COLOR = `#494B50`
+const GRID_LINE_COLOR = `#D9DADD`
+const BG_COLOR = BOARD_COLOR
+const MUTED_COLOR = `#61646B`
+const PANEL_LEFT = 640
 
 // Large grid layout - extends beyond visible area on all sides
 const GRID_COLS = 14 // Extra columns to bleed left/right
@@ -82,7 +81,7 @@ function generateGameState(): {
   filledBoxes: Map<string, TeamColor>
 } {
   const edges = new Map<string, TeamColor>()
-  const teams: Array<TeamColor> = [`RED`, `BLUE`, `GREEN`, `YELLOW`]
+  const teams: ReadonlyArray<TeamColor> = TEAMS
 
   // Place edges with probability decreasing from left to right
   // This simulates a game where left side is more complete
@@ -375,39 +374,12 @@ async function buildImage() {
     }
   }
 
-  // Gradient fade overlay on the right side - use SVG for proper transparency
-  // Fade starts earlier (at x=350) to give more space for logo
-  const fadeSvg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
-      <defs>
-        <linearGradient id="fadeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" style="stop-color:${BG_COLOR};stop-opacity:0" />
-          <stop offset="40%" style="stop-color:${BG_COLOR};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${BG_COLOR};stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <rect x="350" y="0" width="850" height="${HEIGHT}" fill="url(#fadeGrad)" />
-    </svg>
-  `
-
-  children.push({
-    type: `img`,
-    props: {
-      src: `data:image/svg+xml,${encodeURIComponent(fadeSvg)}`,
-      style: {
-        position: `absolute`,
-        left: 0,
-        top: 0,
-        width: WIDTH,
-        height: HEIGHT,
-      } as React.CSSProperties,
-    },
-  })
-
-  // Load and embed the actual logo
+  // Load and embed the logo
   const logoPath = join(ROOT, `public`, `logo.svg`)
   const logoSvg = await readFile(logoPath, `utf-8`)
   const logoDataUri = `data:image/svg+xml,${encodeURIComponent(logoSvg)}`
+  const [, logoWidth, logoHeight] = logoSvg.match(/viewBox="0 0 ([\d.]+) ([\d.]+)"/)!.map(Number)
+  const logoDisplayWidth = 470
 
   // Main container
   return {
@@ -420,121 +392,104 @@ async function buildImage() {
         display: `flex`,
         position: `relative`,
         overflow: `hidden`,
+        fontFamily: `Recursive`,
       } as React.CSSProperties,
       children: [
         // Grid elements
         ...children,
 
-        // Background behind logo to cover transparent parts
+        // A plain panel holds the brand; the sketched board stays on the left.
         {
           type: `div`,
           props: {
             style: {
               position: `absolute`,
-              right: 45,
-              top: 165,
-              width: 630,
-              height: 74,
-              backgroundColor: BG_COLOR,
-              borderRadius: 4,
-            } as React.CSSProperties,
-          },
-        },
-
-        // Actual logo - positioned on right, bigger, nudged up slightly
-        {
-          type: `img`,
-          props: {
-            src: logoDataUri,
-            style: {
-              position: `absolute`,
-              right: 50,
-              top: 170,
-              width: 620,
-              height: 64,
-            } as React.CSSProperties,
-          },
-        },
-
-        // Strapline under logo - right aligned
-        {
-          type: `div`,
-          props: {
-            style: {
-              position: `absolute`,
-              right: 50,
-              top: 260,
-              fontSize: 28,
-              fontWeight: 500,
-              color: MUTED_COLOR,
-              lineHeight: 1.5,
-            } as React.CSSProperties,
-            children: `The world's largest game of Dots and Boxes`,
-          },
-        },
-
-        // Team color legend
-        {
-          type: `div`,
-          props: {
-            style: {
-              position: `absolute`,
-              right: 50,
-              top: 330,
+              left: PANEL_LEFT,
+              top: 0,
+              width: WIDTH - PANEL_LEFT,
+              height: HEIGHT,
+              backgroundColor: `#FFFFFF`,
+              borderLeft: `2px solid ${GRID_LINE_COLOR}`,
               display: `flex`,
-              gap: 14,
+              flexDirection: `column`,
+              justifyContent: `center`,
+              padding: `0 56px`,
             } as React.CSSProperties,
-            children: Object.entries(TEAM_COLORS).map(([, color], i) => ({
-              type: `div`,
-              props: {
-                style: {
-                  width: 36,
-                  height: 36,
-                  backgroundColor: color,
-                  opacity: 0.85,
-                  borderRadius: 6,
-                  transform: `rotate(${(i - 1.5) * 2}deg)`,
-                } as React.CSSProperties,
+            children: [
+              {
+                type: `img`,
+                props: {
+                  src: logoDataUri,
+                  style: {
+                    width: logoDisplayWidth,
+                    height: (logoDisplayWidth * logoHeight) / logoWidth,
+                  } as React.CSSProperties,
+                },
               },
-            })),
-          },
-        },
-
-        // Bottom tagline
-        {
-          type: `div`,
-          props: {
-            style: {
-              position: `absolute`,
-              right: 50,
-              bottom: 50,
-              fontSize: 22,
-              fontWeight: 400,
-              color: MUTED_COLOR,
-              textAlign: `right`,
-            } as React.CSSProperties,
-            children: `Complete the fourth edge. Claim the box.`,
+              {
+                type: `div`,
+                props: {
+                  style: {
+                    marginTop: 28,
+                    fontSize: 30,
+                    fontWeight: 400,
+                    color: INK_COLOR,
+                    lineHeight: 1.35,
+                  } as React.CSSProperties,
+                  children: TAGLINE.replace(`Dots & Boxes`, `Dots\u00a0&\u00a0Boxes`),
+                },
+              },
+              {
+                type: `div`,
+                props: {
+                  style: { display: `flex`, gap: 18, marginTop: 34 } as React.CSSProperties,
+                  children: TEAMS.map((team) => ({
+                    type: `div`,
+                    props: {
+                      style: {
+                        display: `flex`,
+                        alignItems: `center`,
+                        gap: 8,
+                        fontSize: 22,
+                        fontWeight: 800,
+                        color: INK_COLOR,
+                      } as React.CSSProperties,
+                      children: [
+                        {
+                          type: `div`,
+                          props: {
+                            style: {
+                              width: 20,
+                              height: 20,
+                              borderRadius: 5,
+                              backgroundColor: TEAM_COLORS[team],
+                            } as React.CSSProperties,
+                          },
+                        },
+                        TEAM_LABELS[team],
+                      ],
+                    },
+                  })),
+                },
+              },
+              {
+                type: `div`,
+                props: {
+                  style: {
+                    marginTop: 40,
+                    fontSize: 22,
+                    fontWeight: 400,
+                    color: MUTED_COLOR,
+                  } as React.CSSProperties,
+                  children: `Draw the fourth line to claim the box.`,
+                },
+              },
+            ],
           },
         },
       ],
     },
   }
-}
-
-const INTER_VERSION = `v4.1`
-const INTER_ZIP_URL = `https://github.com/rsms/inter/releases/download/${INTER_VERSION}/Inter-4.1.zip`
-
-async function downloadFonts(fontsDir: string): Promise<void> {
-  console.log(`📥 Downloading Inter fonts...`)
-  await mkdir(fontsDir, { recursive: true })
-  const zipPath = join(fontsDir, `Inter.zip`)
-  execSync(`curl -L -o "${zipPath}" "${INTER_ZIP_URL}"`, { stdio: `inherit` })
-  execSync(
-    `unzip -j "${zipPath}" "extras/ttf/Inter-Bold.ttf" "extras/ttf/Inter-Regular.ttf" -d "${fontsDir}"`,
-    { stdio: `inherit` },
-  )
-  execSync(`rm "${zipPath}"`)
-  console.log(`   Fonts downloaded to ${fontsDir}`)
 }
 
 type FontWeight = 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900
@@ -547,41 +502,28 @@ interface FontConfig {
 }
 
 async function loadFonts(): Promise<Array<FontConfig>> {
-  // Load fonts from public/fonts (shared with the web app)
-  const fontsDir = join(ROOT, `public`, `fonts`)
-  const fonts: Array<FontConfig> = []
-
+  // Static instances of the web font (Recursive, Casual axis pinned). Satori
+  // cannot read WOFF2, so the TTFs live in artwork/ and are not deployed.
+  const fontsDir = join(ROOT, `artwork`, `fonts`)
   const fontFiles: Array<{ file: string; weight: FontWeight }> = [
-    { file: `Inter-Bold.ttf`, weight: 700 },
-    { file: `Inter-Regular.ttf`, weight: 400 },
+    { file: `Recursive-Casual-Regular.ttf`, weight: 400 },
+    { file: `Recursive-Casual-ExtraBold.ttf`, weight: 800 },
   ]
 
-  const fontsExist = fontFiles.every(({ file }) => existsSync(join(fontsDir, file)))
-
-  if (!fontsExist) {
-    await downloadFonts(fontsDir)
-  }
-
-  for (const { file, weight } of fontFiles) {
-    const fontPath = join(fontsDir, file)
-    try {
-      const fontData = await readFile(fontPath)
-      fonts.push({
-        name: `Inter`,
-        data: fontData.buffer.slice(fontData.byteOffset, fontData.byteOffset + fontData.byteLength),
+  return Promise.all(
+    fontFiles.map(async ({ file, weight }) => {
+      const fontData = await readFile(join(fontsDir, file))
+      return {
+        name: `Recursive`,
+        data: fontData.buffer.slice(
+          fontData.byteOffset,
+          fontData.byteOffset + fontData.byteLength,
+        ) as ArrayBuffer,
         weight,
-        style: `normal`,
-      })
-    } catch {
-      console.log(`⚠️  Font not found: ${file}`)
-    }
-  }
-
-  if (fonts.length === 0) {
-    throw new Error(`Failed to load fonts`)
-  }
-
-  return fonts
+        style: `normal` as const,
+      }
+    }),
+  )
 }
 
 async function main() {

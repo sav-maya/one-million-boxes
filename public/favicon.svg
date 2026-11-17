@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img">
+  <title>1 Million Boxes</title>
+  <g transform="translate(0 0)">
+    <rect x="9" y="9" width="30" height="30" rx="2" fill="#FFC83D"/>
+    <g fill="none" stroke-width="5.5" stroke-linecap="round">
+      <path d="M8 8.5Q24 6.6 40 8" stroke="#D55E00"/>
+      <path d="M40 8Q41.6 24 39.5 40" stroke="#00639B"/>
+      <path d="M39.5 40Q24 41.4 8 39.5" stroke="#009E73"/>
+      <path d="M8 39.5Q6.5 24 8 8.5" stroke="#C3739F"/>
+    </g>
+    <g fill="#131415">
+      <circle cx="8" cy="8.5" r="4.4"/>
+      <circle cx="40" cy="8" r="4.4"/>
+      <circle cx="39.5" cy="40" r="4.4"/>
+      <circle cx="8" cy="39.5" r="4.4"/>
+    </g>
+  </g>
+</svg>

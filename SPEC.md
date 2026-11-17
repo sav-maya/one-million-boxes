@@ -10,12 +10,18 @@ There is one game, `game_id = 1`, with 1,000×1,000 boxes and 2,002,000 edges.
 Players draw any available edge without turn order. The team that draws a box's
 fourth edge claims it. One edge can complete two boxes.
 
-| Team ID | Team   | Packed owner |
-| ------- | ------ | ------------ |
-| 0       | Red    | 1            |
-| 1       | Blue   | 2            |
-| 2       | Green  | 3            |
-| 3       | Yellow | 4            |
+| Team ID | Team     | Colour    | Packed owner |
+| ------- | -------- | --------- | ------------ |
+| 0       | Fox      | `#D55E00` | 1            |
+| 1       | Jay      | `#00639B` | 2            |
+| 2       | Frog     | `#009E73` | 3            |
+| 3       | Flamingo | `#C3739F` | 4            |
+
+Team names and colours live only in `shared/teams.ts`; Postgres stores the
+numeric team ID and never a name or colour. `GET /api/team` returns the team
+key (`FOX`, `JAY`, `FROG` or `FLAMINGO`). Each colour has at least 3:1 contrast
+against the `#FAFAFA` board, and the four stay distinguishable under
+protanopia, deuteranopia and tritanopia.
 
 Packed owner `0` means empty. Team scores count claimed boxes. The default
 `board_complete` mode ends when all one million boxes are claimed; the highest
@@ -290,10 +296,12 @@ appears slightly larger in the bottom-left when the pencil cursor is hidden,
 including on touch devices, and remains available to assistive technology.
 
 Controls use consistent 1px rounded borders, raised edges and subtle press
-feedback. Team
-badges and score chips keep the original team colours; score chips echo claimed
-boxes, and the minimap has a labelled frame. The UI keeps the Inter font and
-Neon accent without changing board rendering or the original logo.
+feedback. Team badges, score chips, the pencil, the moves dial, box fills and
+edges all take their colours from `shared/teams.ts`; score chips echo claimed
+boxes, and the minimap has a labelled frame. The UI uses Recursive with its
+Casual axis pinned (self-hosted Latin woff2), a sunflower `#FFC83D` accent with
+dark text, and the 1 Million Boxes logo: one hand-drawn box with a side in each
+team colour. Board grid and dot rendering are unchanged.
 
 The board fills the area below the header. On notched phones it runs edge to
 edge under the notch and home indicator, while the header and every
@@ -305,9 +313,10 @@ accept drawing input. The minimap and vertical zoom buttons share the moves
 dial’s bottom alignment on wider screens. On narrow screens the learn-more
 link stays at the bottom alongside the minimap and zoom buttons, with the fixed
 moves dial above it. The link keeps this position when the dial follows the
-mouse cursor.
+mouse cursor. A small plain-text “Built with Neon Realtime” credit sits just
+above the link.
 
-A blocked draw shows “Out of moves! Recharging...” and briefly shakes the cursor
+A blocked draw shows “Out of moves. You get one back every 3 seconds.” and briefly shakes the cursor
 or fixed move dial; repeated attempts restart the shake. The prompt clears when
 a move refills. Reduced-motion preferences disable shakes and the refill sweep
 and shorten other feedback animations.

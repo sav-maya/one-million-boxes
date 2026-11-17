@@ -4,6 +4,7 @@ import { TeamBadge } from "../ui/TeamBadge"
 import { ScoreBoard } from "../ui/ScoreBoard"
 import { ShareDialog } from "../ui/ShareDialog"
 import { AboutDialog } from "../ui/AboutDialog"
+import { GAME_NAME, SHORT_NAME } from "../../../shared/brand"
 import "./Header.css"
 
 const ABOUT_DISMISSED_KEY = `boxes:about-dismissed`
@@ -42,8 +43,8 @@ export function Header() {
       <header className="header" data-testid="header">
         <div className="header-left">
           <h1 className="header-title">
-            <img src="/logo.svg" alt="1 Million Boxes" className="header-logo header-logo-full" />
-            <img src="/logo-mini.svg" alt="1M Boxes" className="header-logo header-logo-mini" />
+            <img src="/logo.svg" alt={GAME_NAME} className="header-logo header-logo-full" />
+            <img src="/logo-mini.svg" alt={SHORT_NAME} className="header-logo header-logo-mini" />
           </h1>
           <TeamBadge />
         </div>

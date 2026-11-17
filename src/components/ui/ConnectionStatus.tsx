@@ -17,12 +17,12 @@ export function ConnectionStatus() {
       {isLoading ? (
         <div className="connection-status__loading">
           <span className="connection-status__spinner" />
-          <span>Loading game...</span>
+          <span>Loading the board…</span>
         </div>
       ) : (
         <div className="connection-status__disconnected">
           <span className="connection-status__dot" />
-          <span>Reconnecting...</span>
+          <span>Reconnecting to the game…</span>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { GameState } from "../../shared/game-state"
-import { GAME_START_TIMESTAMP_KEY } from "../../shared/game-config"
+import { GAME_START_TIMESTAMP_KEY, QUOTA_REFILL_INTERVAL_MS } from "../../shared/game-config"
 import { BoxBitmap } from "../lib/box-bitmap"
 import { playBoxSound, playPencilSound } from "../lib/game-sounds"
 import { useBoardRealtime } from "../hooks/useBoardRealtime"
@@ -11,7 +11,7 @@ import type { ReactNode } from "react"
 
 // Local storage key for user's completed boxes (must match quota-context.tsx)
 const LOCAL_BOXES_KEY = `boxes:local-completed`
-const OUT_OF_MOVES_MESSAGE = `Out of moves! Recharging...`
+const OUT_OF_MOVES_MESSAGE = `Out of moves. You get one back every ${QUOTA_REFILL_INTERVAL_MS / 1000} seconds.`
 
 export interface RecentEvent {
   id: number
@@ -173,8 +173,10 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
     setIsConnected(false)
   }, [])
 
+  // Every subscription error is followed by an automatic reconnect.
   const handleError = useCallback((err: Error) => {
-    setError(err.message)
+    console.warn(`[GameState] Realtime error:`, err.message)
+    setError(`Lost the live connection to the board. Reconnecting now.`)
   }, [])
 
   // Clear the recharge prompt as soon as another move becomes available.
@@ -283,7 +285,7 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
             await awaitTxId(result.txid)
           } catch {
             reconnect()
-            setError(`Move saved; waiting for synchronization`)
+            setError(`Your move is saved. The board will catch up in a moment.`)
           }
         } else {
           // Handle error codes
@@ -304,35 +306,35 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
               break
             case `NO_IDENTITY`:
               refund() // Fallback refund if no server quota info
-              setError(`No team assigned - please refresh`)
+              setError(`We couldn't find your team. Refresh the page to rejoin.`)
               break
             case `GAME_COMPLETE`:
               refund()
-              setError(`Game is complete!`)
+              setError(`This game is over, so your move wasn't played.`)
               break
             case `INVALID_EDGE`:
               refund()
-              setError(`Invalid edge`)
+              setError(`That line isn't on the board. Pick another one.`)
               break
             case `DATABASE_ERROR`:
               refund()
-              setError(`Database error - please try again`)
+              setError(`Your move didn't go through. Try again in a moment.`)
               break
             default:
               refund()
-              setError(`Failed to place edge: ${result.code}`)
+              setError(`Your move didn't go through (${result.code}). Try again in a moment.`)
           }
 
           // Clear pending edge on error
           localEdgeIdsRef.current.delete(edgeId)
           setPendingEdge(null)
         }
-      } catch (err) {
+      } catch {
         // Network error - refund locally since we can't reach server
         refund()
         localEdgeIdsRef.current.delete(edgeId)
         setPendingEdge(null)
-        setError(err instanceof Error ? err.message : `Failed to place edge`)
+        setError(`We couldn't reach the game. Check your connection and try again.`)
       }
     },
     [consume, syncFromServer, refund, teamId, awaitTxId, reconnect, isConnected, notifyNoMoves],

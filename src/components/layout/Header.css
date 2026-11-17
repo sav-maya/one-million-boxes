@@ -24,10 +24,8 @@
 }
 
 .header-logo {
-  height: 22px;
+  height: 30px;
   width: auto;
-  /* A solid bottom edge avoids shadows showing through the transparent logo. */
-  border-bottom: 3px solid var(--hud-edge);
 }
 
 /* Show full logo by default, hide mini */
@@ -154,14 +152,15 @@
 
   .header-logo-mini {
     display: block;
-    height: 22px;
+    height: 28px;
   }
 }
 
 /* Keep the logo readable while fitting the smallest phone widths. */
 @media (max-width: 360px) {
-  .header-logo {
-    height: 20px;
+  .header-logo,
+  .header-logo-mini {
+    height: 24px;
   }
 
   .header-left {

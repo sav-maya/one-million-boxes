@@ -1,16 +1,17 @@
 import { useCallback, useId, useState } from "react"
+import type { CSSProperties } from "react"
 import "./TouchFeedback.css"
 
 interface Ripple {
   id: string
   x: number
   y: number
-  teamColor?: `red` | `blue` | `green` | `yellow`
+  color?: string
 }
 
 interface UseTouchFeedbackReturn {
   ripples: Array<Ripple>
-  addRipple: (x: number, y: number, teamColor?: Ripple[`teamColor`]) => void
+  addRipple: (x: number, y: number, color?: string) => void
 }
 
 /**
@@ -23,9 +24,9 @@ export function useTouchFeedback(): UseTouchFeedbackReturn {
   const counterRef = { current: 0 }
 
   const addRipple = useCallback(
-    (x: number, y: number, teamColor?: Ripple[`teamColor`]) => {
+    (x: number, y: number, color?: string) => {
       const id = `${baseId}-${counterRef.current++}`
-      const newRipple: Ripple = { id, x, y, teamColor }
+      const newRipple: Ripple = { id, x, y, color }
 
       setRipples((prev) => [...prev, newRipple])
 
@@ -56,11 +57,14 @@ export function TouchFeedback({ ripples }: TouchFeedbackProps) {
       {ripples.map((ripple) => (
         <div
           key={ripple.id}
-          className={`touch-ripple${ripple.teamColor ? ` team-${ripple.teamColor}` : ``}`}
-          style={{
-            left: ripple.x,
-            top: ripple.y,
-          }}
+          className="touch-ripple"
+          style={
+            {
+              left: ripple.x,
+              top: ripple.y,
+              ...(ripple.color ? { "--ripple-color": ripple.color } : {}),
+            } as CSSProperties
+          }
         />
       ))}
     </div>
