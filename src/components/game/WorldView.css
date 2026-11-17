@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .world-view-wrapper {
   position: absolute;
   bottom: calc(var(--minimap-margin) + var(--safe-bottom));

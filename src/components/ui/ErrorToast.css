@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .error-toast {
   position: fixed;
   bottom: calc(80px + var(--safe-bottom));

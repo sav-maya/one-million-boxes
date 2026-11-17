@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { MoveDial } from "../ui/MoveDial"
 import { LEARN_MORE_URL } from "../../../shared/brand"
 import "./Footer.css"

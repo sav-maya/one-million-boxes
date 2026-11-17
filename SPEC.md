@@ -1,3 +1,5 @@
+<!-- Modified by sav-maya -->
+
 # 1 Million Boxes specification
 
 This describes the implemented application. Postgres is authoritative for the

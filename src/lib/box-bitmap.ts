@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { TEAMS, TEAM_COLORS } from "../../shared/teams"
 import { GRID_HEIGHT, GRID_WIDTH } from "./config"
 

@@ -1,10 +1,16 @@
+<!-- Modified by sav-maya -->
+
 # 1 Million Boxes
 
-A multiplayer game of [Dots & Boxes](https://en.wikipedia.org/wiki/Dots_and_boxes)
-on a shared board of one million boxes. Four teams compete to claim boxes by
-drawing their final edge, with every move appearing live for everyone playing.
+A friendly, live game of [Dots & Boxes](https://en.wikipedia.org/wiki/Dots_and_boxes)
+for you and your friends. Join the Fox, Jay, Frog or Flamingo team and claim
+boxes by drawing their fourth side on one shared board of a million boxes, with
+every move appearing live for everyone playing. It works with a mouse or a
+phone, and you can add it to your home screen.
 
-**[Play the demo](https://one-million-boxes.vercel.app/)**
+Based on [samwillis/one-million-boxes](https://github.com/samwillis/one-million-boxes) (Apache-2.0).
+
+**[Play the original demo](https://one-million-boxes.vercel.app/)**
 
 The game is built with [Neon Realtime](https://neon.com/docs/realtime/overview),
 a live SQL query engine for Neon Postgres. Clients subscribe to a query, receive
@@ -137,6 +143,46 @@ preserving existing play. Run it again when updating the schema or draw function
 database setup does not run at API startup. To clear the board, scores and player
 move allowances in your configured database, run `pnpm db:reset`.
 
+## Testing on a phone
+
+The dev server listens on `127.0.0.1` by default. To open it from a phone on the
+same trusted Wi-Fi network:
+
+1. Find your computer's LAN address, for example `192.168.1.20`. `pnpm dev`
+   prints it when you start it with `DEV_HOST=0.0.0.0`.
+2. Add `http://<LAN-IP>:5173` to `preview.realtime.allowedOrigins` in
+   [`neon.ts`](neon.ts) and apply it with `pnpm exec neon deploy`. Realtime
+   rejects browsers from origins that aren't listed.
+3. Start the app on all interfaces:
+
+   ```sh
+   DEV_HOST=0.0.0.0 pnpm dev
+   ```
+
+4. Open `http://<LAN-IP>:5173` on the phone. The API stays on `127.0.0.1`;
+   Vite proxies `/api` to it.
+5. When you're done, remove the LAN origin from `neon.ts` and run
+   `pnpm exec neon deploy` again.
+
+Only do this on a network you trust: anyone on it can reach the dev server while
+it runs. Chrome on Android only offers to install the app over HTTPS, so test
+Add to Home Screen on a deployed URL rather than the LAN address.
+
+## Branding assets
+
+Team names and colours live in [`shared/teams.ts`](shared/teams.ts), and the
+game name, tagline, accent colour and learn-more link live in
+[`shared/brand.ts`](shared/brand.ts). The logo source is in [`artwork/`](artwork/).
+After changing them, regenerate the images:
+
+```sh
+pnpm icons                              # home screen icons and favicon
+pnpm exec tsx scripts/generate-og-image.ts  # public/og-image.png
+```
+
+The UI font is Recursive with its Casual axis pinned, self-hosted as a Latin
+woff2 in `public/fonts/` under the SIL Open Font License.
+
 ## Deploy to Vercel
 
 After configuring Neon and initializing the database:
@@ -157,4 +203,7 @@ Realtime origins.
 
 ## License
 
-Apache-2.0, copyright Databricks, Inc. See [LICENSE](LICENSE).
+Apache-2.0, copyright Databricks, Inc. See [LICENSE](LICENSE). This fork's
+changes are marked with a “Modified by” comment at the top of each changed file.
+Recursive is licensed under the SIL Open Font License 1.1; see
+[`public/fonts/Recursive-LICENSE.txt`](public/fonts/Recursive-LICENSE.txt).

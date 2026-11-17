@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { useCallback, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { GAME_NAME } from "../../../shared/brand"

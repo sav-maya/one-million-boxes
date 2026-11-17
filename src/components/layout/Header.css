@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .header {
   height: calc(var(--header-height) + var(--safe-top));
   display: flex;

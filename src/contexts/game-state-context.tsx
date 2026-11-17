@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { GameState } from "../../shared/game-state"
 import { GAME_START_TIMESTAMP_KEY, QUOTA_REFILL_INTERVAL_MS } from "../../shared/game-config"

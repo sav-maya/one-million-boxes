@@ -1,4 +1,5 @@
 #!/usr/bin/env npx tsx
+// Modified by sav-maya
 /**
  * Generate OpenGraph social media card image.
  *

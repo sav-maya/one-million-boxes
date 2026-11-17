@@ -4,7 +4,7 @@
   "private": true,
   "license": "Apache-2.0",
   "author": "Databricks, Inc.",
-  "description": "A multiplayer Dots & Boxes demo built with Postgres and Neon Realtime.",
+  "description": "A friendly, live game of Dots & Boxes for you and your friends, built with Postgres and Neon Realtime.",
   "type": "module",
   "scripts": {
     "dev": "tsx scripts/dev.ts",
