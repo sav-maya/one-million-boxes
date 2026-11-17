@@ -1,7 +1,9 @@
+// Modified by sav-maya
 import { useEffect, useRef, useState } from "react"
 import { useQuota } from "../../contexts/quota-context"
 import { useTeam } from "../../contexts/team-context"
 import { QUOTA_BONUS_DOUBLE, QUOTA_BONUS_SINGLE } from "../../lib/config"
+import { TEAM_COLORS } from "../../../shared/teams"
 import "./BonusToast.css"
 
 interface ToastInstance {
@@ -29,7 +31,7 @@ export function BonusToast() {
         ...prev,
         {
           id,
-          text: `+${tokenBonus} Bonus!`,
+          text: `+${tokenBonus} moves`,
           x: bonusPosition.x,
           y: bonusPosition.y,
         },
@@ -52,11 +54,13 @@ export function BonusToast() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`bonus-toast bonus-toast-${team.toLowerCase()}`}
+          className="bonus-toast"
           style={{
             left: toast.x,
             // Leave space above the move so the newly filled box stays visible.
             top: toast.y - 24,
+            background: TEAM_COLORS[team].primary,
+            color: TEAM_COLORS[team].ink,
           }}
           data-testid="bonus-toast"
         >

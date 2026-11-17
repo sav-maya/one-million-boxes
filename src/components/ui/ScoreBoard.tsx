@@ -1,5 +1,6 @@
+// Modified by sav-maya
 import { useEffect, useRef, useState } from "react"
-import { TEAMS, TEAM_COLORS } from "../../../shared/teams"
+import { TEAMS, TEAM_COLORS, TEAM_LABELS } from "../../../shared/teams"
 import { useQuota } from "../../contexts/quota-context"
 import type { CSSProperties } from "react"
 import type { TeamName } from "../../../shared/teams"
@@ -112,7 +113,7 @@ export function ScoreBoard({ scores = [0, 0, 0, 0], className = `` }: ScoreBoard
           className="scoreboard-item scoreboard-team"
           data-testid={`score-${team.toLowerCase()}`}
           style={{ "--score-color": color } as CSSProperties}
-          title={`${team.charAt(0) + team.slice(1).toLowerCase()} team: ${score.toLocaleString()} boxes`}
+          title={`${TEAM_LABELS[team]} team: ${score.toLocaleString()} boxes`}
         >
           <span className="scoreboard-indicator" style={{ background: color }} />
           <AnimatedScore value={score} color={color} />

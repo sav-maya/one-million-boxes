@@ -1,7 +1,8 @@
+/* Modified by sav-maya */
 .world-view-wrapper {
   position: absolute;
-  bottom: var(--minimap-margin);
-  right: var(--minimap-margin);
+  bottom: calc(var(--minimap-margin) + var(--safe-bottom));
+  right: calc(var(--minimap-margin) + var(--safe-right));
   display: flex;
   flex-direction: row;
   align-items: flex-end;
@@ -60,11 +61,9 @@
   border-radius: 4px;
   background: var(--color-text);
   color: white;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1.4;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   pointer-events: none;
 }
 

@@ -1,10 +1,12 @@
+// Modified by sav-maya
 import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: "127.0.0.1",
+    // DEV_HOST=0.0.0.0 exposes the dev server on your LAN for phone testing.
+    host: process.env.DEV_HOST || "127.0.0.1",
     port: 5173,
     strictPort: true,
     fs: {

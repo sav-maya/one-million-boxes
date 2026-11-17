@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .game-canvas-container {
   position: relative;
   width: 100%;
@@ -9,6 +10,7 @@
 
 .game-canvas {
   display: block;
+  touch-action: none;
 }
 
 /* Pop animation for other players' moves */

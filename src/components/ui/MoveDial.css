@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .move-dial {
   position: relative;
   width: var(--dial-size, 44px);
@@ -59,10 +60,8 @@
 
 .move-dial-label {
   margin-top: 1px;
-  font-size: var(--dial-label-size, 6px);
+  font-size: var(--dial-label-size, 7px);
   line-height: 1;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: #c9cbcf;
 }
 

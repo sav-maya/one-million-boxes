@@ -1,3 +1,5 @@
+<!-- Modified by sav-maya -->
+
 # 1 Million Boxes specification
 
 This describes the implemented application. Postgres is authoritative for the
@@ -10,12 +12,18 @@ There is one game, `game_id = 1`, with 1,000×1,000 boxes and 2,002,000 edges.
 Players draw any available edge without turn order. The team that draws a box's
 fourth edge claims it. One edge can complete two boxes.
 
-| Team ID | Team   | Packed owner |
-| ------- | ------ | ------------ |
-| 0       | Red    | 1            |
-| 1       | Blue   | 2            |
-| 2       | Green  | 3            |
-| 3       | Yellow | 4            |
+| Team ID | Team     | Colour    | Packed owner |
+| ------- | -------- | --------- | ------------ |
+| 0       | Fox      | `#D55E00` | 1            |
+| 1       | Jay      | `#00639B` | 2            |
+| 2       | Frog     | `#009E73` | 3            |
+| 3       | Flamingo | `#C3739F` | 4            |
+
+Team names and colours live only in `shared/teams.ts`; Postgres stores the
+numeric team ID and never a name or colour. `GET /api/team` returns the team
+key (`FOX`, `JAY`, `FROG` or `FLAMINGO`). Each colour has at least 3:1 contrast
+against the `#FAFAFA` board, and the four stay distinguishable under
+protanopia, deuteranopia and tritanopia.
 
 Packed owner `0` means empty. Team scores count claimed boxes. The default
 `board_complete` mode ends when all one million boxes are claimed; the highest
@@ -242,12 +250,37 @@ Edge picking covers the full line segment and its endpoints, selecting the
 nearest line where hit areas overlap. Mouse and touch retain separate hit widths
 and minimum zoom levels.
 
+Touch drawing uses tap-to-confirm, because a mis-tap wastes a scarce move and
+can hand another team a box. The first tap on a free edge selects it and draws
+a thicker, dashed, translucent highlight in the player's team colour as part of
+normal rendering; changing the selection repaints only the affected edge
+strips. A second tap on the selected edge commits it through the normal draw
+path with the same client checks, sounds and quota updates. A quick second tap
+on the selected edge is a confirmation, not a double-tap zoom. Tapping another
+free edge moves the selection, and tapping empty space or a taken edge clears
+it. The selection survives pan and zoom and clears when Realtime reports that
+someone took the edge. Out of moves shows the usual feedback and keeps the
+selection. The highlight never animates. `src/lib/tap-selection.ts` holds these
+rules as pure functions. Mouse drawing is unchanged.
+
+A settings button above the sound toggle opens a popover with two switches,
+both on by default and stored in local storage like the sound preference:
+“Tap twice to draw” (shown on touch devices) and “Vibration” (shown where
+`navigator.vibrate` exists). Turning off the first restores immediate touch
+drawing.
+
 Local moves play a short synthesized pencil scratch after passing client checks.
 The draw response plays a rising chime when it confirms one or two box claims.
 Snapshots and other players' moves stay silent. Web Audio starts lazily from a
 draw gesture; the sound toggle above the zoom controls persists its preference in local storage
 and immediately silences scheduled sounds. Sound is enabled by default and
 audio failures do not affect gameplay.
+
+Haptics follow the same moments through `buzz()` in `src/haptics.ts`: 10ms with
+the local pencil scratch, `[20, 40, 20]` with the box-claim chime, and 60ms when
+the out-of-moves feedback fires. It does nothing without the Vibration API (for
+example iOS Safari) or when the Vibration setting is off, and never vibrates for
+snapshots or other players' moves.
 
 `pnpm simulate` adds synthetic play through `GameStore.draw()` and the normal
 Postgres draw function. Bots use distinct identities, four teams and real quotas;
@@ -290,20 +323,27 @@ appears slightly larger in the bottom-left when the pencil cursor is hidden,
 including on touch devices, and remains available to assistive technology.
 
 Controls use consistent 1px rounded borders, raised edges and subtle press
-feedback. Team
-badges and score chips keep the original team colours; score chips echo claimed
-boxes, and the minimap has a labelled frame. The UI keeps the Inter font and
-Neon accent without changing board rendering or the original logo.
+feedback. Team badges, score chips, the pencil, the moves dial, box fills and
+edges all take their colours from `shared/teams.ts`; score chips echo claimed
+boxes, and the minimap has a labelled frame. The UI uses Recursive with its
+Casual axis pinned (self-hosted Latin woff2), a sunflower `#FFC83D` accent with
+dark text, and the 1 Million Boxes logo: one hand-drawn box with a side in each
+team colour. Board grid and dot rendering are unchanged.
 
-The board fills the area below the header. The move dial and learn-more link
+The board fills the area below the header. On notched phones it runs edge to
+edge under the notch and home indicator, while the header and every
+edge-pinned control add the `env(safe-area-inset-*)` insets, including left and
+right insets in landscape. Overscroll is disabled on the page, so a downward pan
+never triggers pull-to-refresh. The move dial and learn-more link
 float over its bottom edge without a footer bar; gaps between controls still
 accept drawing input. The minimap and vertical zoom buttons share the moves
 dial’s bottom alignment on wider screens. On narrow screens the learn-more
 link stays at the bottom alongside the minimap and zoom buttons, with the fixed
 moves dial above it. The link keeps this position when the dial follows the
-mouse cursor.
+mouse cursor. A small plain-text “Built with Neon Realtime” credit sits just
+above the link.
 
-A blocked draw shows “Out of moves! Recharging...” and briefly shakes the cursor
+A blocked draw shows “Out of moves. You get one back every 3 seconds.” and briefly shakes the cursor
 or fixed move dial; repeated attempts restart the shake. The prompt clears when
 a move refills. Reduced-motion preferences disable shakes and the refill sweep
 and shorten other feedback animations.
@@ -372,6 +412,13 @@ The metadata subscription and reconnect bootstrap both check `started_at`.
 A changed generation clears browser quota/personal-score caches and reloads the
 page. The signed player/team cookie is retained. Previous games and individual
 moves are not archived.
+
+The frontend is installable. `public/manifest.webmanifest` opens `/`
+standalone with the header colour as the theme, and `pnpm icons`
+(`scripts/generate-icons.ts`) renders the apple-touch, 192px, 512px, maskable
+and favicon PNGs from `artwork/logo-mark.svg`. There is deliberately no service
+worker: a cached bundle could fall out of step with the API it ships with, and
+a live board has nothing useful to show offline.
 
 Vercel serves the static frontend and routes `/api/*` to `api/index.ts`, which
 creates the shared Hono application from `server/app.ts`. The Node.js function

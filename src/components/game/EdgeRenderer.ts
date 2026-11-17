@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { H, W, coordsToEdgeId } from "../../../shared/edge-math"
 import { getTeamColor } from "../../../shared/teams"
 import { getScale, getVisibleBounds, worldToScreen } from "../../lib/view-transform"
@@ -7,6 +8,8 @@ import type { ViewState } from "../../hooks/useViewState"
 import type { GameState } from "../../../shared/game-state"
 
 const PENDING_COLOR = `rgba(100, 100, 100, 0.6)`
+const PENDING_DASH = [4, 4]
+const SOLID: ReadonlyArray<number> = []
 
 // Threshold below which we use straight lines with wobbled endpoints (faster)
 // Above this, we use full quadratic curves
@@ -47,9 +50,25 @@ interface EdgeSegment {
 interface EdgeBatch {
   color: string
   lineWidth: number
-  dashed: boolean
+  dash: ReadonlyArray<number>
   edges: Array<EdgeSegment>
 }
+
+/**
+ * A touch selection waiting for its confirming tap. `color` is the player's
+ * translucent team colour.
+ */
+export interface SelectedEdge {
+  edgeId: number
+  color: string
+}
+
+type AddToBatch = (
+  color: string,
+  lineWidthMult: number,
+  dash: ReadonlyArray<number>,
+  segment: EdgeSegment,
+) => void
 
 /**
  * Render all visible edges on the canvas.
@@ -66,6 +85,7 @@ export function renderEdges(
   renderDrawnLines: boolean = true,
   bounds?: { minX: number; minY: number; maxX: number; maxY: number },
   drawingEdge?: { edgeId: number; progress: number } | null,
+  selectedEdge: SelectedEdge | null = null,
 ): void {
   // Early exit if nothing to render
   if (!renderGridLines && !renderDrawnLines) return
@@ -80,40 +100,42 @@ export function renderEdges(
     renderGridPattern(ctx, gridSize, view.centerX, view.centerY, canvasWidth, canvasHeight)
   }
 
-  // Only iterate edges if we need to render taken/pending/hovered edges
-  if (!renderDrawnLines && pendingEdgeId === null && hoveredEdgeId === null) {
+  // Only iterate edges if we need to render taken/pending/selected/hovered edges
+  if (
+    !renderDrawnLines &&
+    pendingEdgeId === null &&
+    hoveredEdgeId === null &&
+    selectedEdge === null
+  ) {
     return
   }
 
   const visibleBounds = bounds ?? getVisibleBounds(view, canvasWidth, canvasHeight)
   // Line width scales with grid size, with a minimum of 0.5px for very small sizes
   const lineWidth = Math.max(0.5, gridSize * 0.1)
+  // Dashes scale with the cell so a selection reads the same at every zoom.
+  const selectedDash = [gridSize * 0.16, gridSize * 0.12]
 
   // Batches for color grouping: Map<colorKey, EdgeBatch>
-  // colorKey format: "color|lineWidthMultiplier|dashed"
+  // colorKey format: "color|lineWidthMultiplier|dash"
   const batches = new Map<string, EdgeBatch>()
   let drawingBatch: EdgeBatch | null = null
 
   // Helper to add edge to batch
-  const addToBatch = (
-    color: string,
-    lineWidthMult: number,
-    dashed: boolean,
-    segment: EdgeSegment,
-  ) => {
+  const addToBatch: AddToBatch = (color, lineWidthMult, dash, segment) => {
     // Keep the animated edge out of the full-length batches, even if Realtime
     // has already confirmed its owner before the pencil finishes the stroke.
     if (segment.edgeId === drawingEdge?.edgeId) {
-      drawingBatch = { color, lineWidth: lineWidth * lineWidthMult, dashed, edges: [segment] }
+      drawingBatch = { color, lineWidth: lineWidth * lineWidthMult, dash, edges: [segment] }
       return
     }
-    const key = `${color}|${lineWidthMult}|${dashed}`
+    const key = `${color}|${lineWidthMult}|${dash.join(`,`)}`
     let batch = batches.get(key)
     if (!batch) {
       batch = {
         color,
         lineWidth: lineWidth * lineWidthMult,
-        dashed,
+        dash,
         edges: [],
       }
       batches.set(key, batch)
@@ -136,6 +158,8 @@ export function renderEdges(
         canvasHeight,
         pendingEdgeId,
         hoveredEdgeId,
+        selectedEdge,
+        selectedDash,
         renderDrawnLines,
         addToBatch,
       )
@@ -157,6 +181,8 @@ export function renderEdges(
         canvasHeight,
         pendingEdgeId,
         hoveredEdgeId,
+        selectedEdge,
+        selectedDash,
         renderDrawnLines,
         addToBatch,
       )
@@ -205,8 +231,8 @@ export function renderEdges(
 }
 
 /**
- * Collect edge into appropriate batch if it's a special edge (taken, pending, or hovered).
- * Grid lines are handled by the tiled pattern.
+ * Collect edge into appropriate batch if it's a special edge (taken, pending,
+ * selected or hovered). Grid lines are handled by the tiled pattern.
  */
 function collectEdge(
   edgeId: number,
@@ -219,15 +245,18 @@ function collectEdge(
   canvasHeight: number,
   pendingEdgeId: number | null,
   hoveredEdgeId: number | null,
+  selectedEdge: SelectedEdge | null,
+  selectedDash: ReadonlyArray<number>,
   renderDrawnLines: boolean,
-  addToBatch: (color: string, lineWidthMult: number, dashed: boolean, segment: EdgeSegment) => void,
+  addToBatch: AddToBatch,
 ): void {
   const isTaken = gameState.isEdgeTaken(edgeId)
   const isPending = edgeId === pendingEdgeId
   const isHovered = edgeId === hoveredEdgeId
+  const isSelected = edgeId === selectedEdge?.edgeId
 
   // Skip unplaced edges (handled by tiled pattern)
-  if (!isTaken && !isPending && !isHovered) return
+  if (!isTaken && !isPending && !isHovered && !isSelected) return
 
   // Skip taken edges if debug flag is off
   if (isTaken && !renderDrawnLines) return
@@ -257,11 +286,13 @@ function collectEdge(
   if (isTaken) {
     const teamId = gameState.getEdgeOwner(edgeId) ?? 0
     const color = getTeamColor(teamId).primary
-    addToBatch(color, 1.2, false, segment)
+    addToBatch(color, 1.2, SOLID, segment)
   } else if (isPending) {
-    addToBatch(PENDING_COLOR, 1.5, true, segment)
+    addToBatch(PENDING_COLOR, 1.5, PENDING_DASH, segment)
+  } else if (isSelected) {
+    addToBatch(selectedEdge!.color, 1.8, selectedDash, segment)
   } else if (isHovered) {
-    addToBatch(HOVERED_EDGE_COLOR, 1.3, false, segment)
+    addToBatch(HOVERED_EDGE_COLOR, 1.3, SOLID, segment)
   }
 }
 
@@ -280,7 +311,7 @@ function renderBatch(
 
   ctx.strokeStyle = batch.color
   ctx.lineWidth = batch.lineWidth
-  ctx.setLineDash(batch.dashed ? [4, 4] : [])
+  ctx.setLineDash(batch.dash)
 
   const path = new Path2D()
 

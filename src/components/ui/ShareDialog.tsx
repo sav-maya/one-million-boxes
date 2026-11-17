@@ -1,5 +1,7 @@
+// Modified by sav-maya
 import { useCallback, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
+import { GAME_NAME } from "../../../shared/brand"
 import "./ShareDialog.css"
 
 export interface ShareDialogProps {
@@ -38,8 +40,8 @@ export function ShareDialog({ open, onOpenChange }: ShareDialogProps) {
   const handleNativeShare = useCallback(async () => {
     try {
       await navigator.share({
-        title: `1 Million Boxes`,
-        text: `Join me in this massive multiplayer Dots & Boxes game!`,
+        title: GAME_NAME,
+        text: `Come play Dots & Boxes with me.`,
         url: shareUrl,
       })
       // Close dialog after successful share
@@ -59,7 +61,7 @@ export function ShareDialog({ open, onOpenChange }: ShareDialogProps) {
         <Dialog.Popup className="share-dialog-popup">
           <Dialog.Title className="share-dialog-title">Share this game</Dialog.Title>
           <Dialog.Description className="share-dialog-description">
-            Invite friends to join the game
+            Send your friends the link so they can join a team.
           </Dialog.Description>
 
           {supportsNativeShare && (
@@ -80,12 +82,12 @@ export function ShareDialog({ open, onOpenChange }: ShareDialogProps) {
                 <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
                 <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
               </svg>
-              Share via...
+              Share…
             </button>
           )}
 
           <div className="share-dialog-divider">
-            <span>or copy link</span>
+            <span>Or copy the link</span>
           </div>
 
           <div className="share-dialog-content">
@@ -101,7 +103,7 @@ export function ShareDialog({ open, onOpenChange }: ShareDialogProps) {
               className={`share-dialog-copy-button ${copied ? `copied` : ``}`}
               onClick={handleCopy}
             >
-              {copied ? `Copied!` : `Copy`}
+              {copied ? `Copied` : `Copy`}
             </button>
           </div>
 

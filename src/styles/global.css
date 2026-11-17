@@ -1,29 +1,23 @@
+/* Modified by sav-maya */
 /* Import mobile-specific styles - must be at top */
 @import "./mobile.css";
 
-/* Neon docs use Inter for body text and headings, including medium weights. */
+/* Recursive with its Casual axis pinned: friendly, hand-lettered, and with
+   equal-width digits so live scores never jiggle. Latin subset, SIL OFL 1.1. */
 @font-face {
-  font-family: "Inter";
+  font-family: "Recursive";
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 300 900;
   font-display: swap;
-  src: url("/fonts/Inter-Latin.woff2") format("woff2");
+  src: url("/fonts/Recursive-Casual-Latin.woff2") format("woff2");
 }
 
 :root {
-  /* Team colors */
-  --color-red: #e53935;
-  --color-blue: #1e88e5;
-  --color-green: #43a047;
-  --color-yellow: #fdd835;
+  /* Team colours live in shared/teams.ts and are applied inline, so the
+     canvas, minimap and UI cannot drift apart. */
 
-  /* Team fill colors (with alpha for watercolor effect) */
-  --color-red-fill: rgba(229, 57, 53, 0.5);
-  --color-blue-fill: rgba(30, 136, 229, 0.5);
-  --color-green-fill: rgba(67, 160, 71, 0.5);
-  --color-yellow-fill: rgba(253, 216, 53, 0.5);
-
-  /* Neon docs neutrals and brand accent; team colors stay independent. */
+  /* Quiet neutrals with one sunflower accent. Text on the accent uses
+     --color-text (11.9:1); links and focus rings use --color-link (6:1). */
   --color-bg: #fafafa;
   --color-surface: #ffffff;
   --color-surface-hover: #f2f2f3;
@@ -32,9 +26,9 @@
   --color-border: #e4e5e7;
   --color-border-strong: #c9cbcf;
   --color-muted: #61646b;
-  --color-accent: #00e599;
-  --color-accent-hover: #00cc88;
-  --color-link: #087f5b;
+  --color-accent: #ffc83d;
+  --color-accent-hover: #f5b800;
+  --color-link: #8a5800;
 
   /* Raised game controls share a firm outline and a small physical edge. */
   --hud-outline: #42464d;
@@ -42,11 +36,6 @@
   --hud-edge: #b8bcc2;
   --hud-radius: 10px;
   --hud-shadow: 0 3px 0 var(--hud-edge), 0 5px 10px rgb(19 20 21 / 8%);
-
-  /* Quota colors */
-  --quota-full: #43a047;
-  --quota-mid: #ffc107;
-  --quota-low: #e53935;
 
   /* Spacing */
   --header-height: 56px;
@@ -57,6 +46,12 @@
 
   /* Touch targets */
   --touch-min: 44px;
+
+  /* Notch, rounded corners and home indicator. Zero on devices without them. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(19, 20, 21, 0.04);
@@ -86,6 +81,8 @@ html,
 body {
   height: 100%;
   overflow: hidden;
+  /* A downward pan must never pull-to-refresh and re-download the board. */
+  overscroll-behavior: none;
 }
 
 html,
@@ -96,7 +93,8 @@ body {
 
 body {
   font-family:
-    "Inter",
+    "Recursive",
+    ui-rounded,
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
@@ -105,7 +103,6 @@ body {
     sans-serif;
   color: var(--color-text);
   line-height: 1.5;
-  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -148,9 +145,9 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1.25;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.01em;
 }
 
 /* Buttons */
@@ -159,6 +156,14 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+}
+
+/* Fast repeated taps (zoom buttons) must not double-tap-zoom the page. */
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button:disabled {
@@ -193,39 +198,6 @@ a {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* Team color utilities */
-.team-red {
-  color: var(--color-red);
-}
-
-.team-blue {
-  color: var(--color-blue);
-}
-
-.team-green {
-  color: var(--color-green);
-}
-
-.team-yellow {
-  color: var(--color-yellow);
-}
-
-.team-red-bg {
-  background-color: var(--color-red);
-}
-
-.team-blue-bg {
-  background-color: var(--color-blue);
-}
-
-.team-green-bg {
-  background-color: var(--color-green);
-}
-
-.team-yellow-bg {
-  background-color: var(--color-yellow);
 }
 
 /* ============================================

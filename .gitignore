@@ -36,3 +36,6 @@ pnpm-debug.log*
 .agents/
 skills-lock.json
 .neon
+.vercel
+.env*
+!.env.example

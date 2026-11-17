@@ -1,3 +1,4 @@
+/* Modified by sav-maya */
 .about-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -21,6 +22,7 @@
   width: 90%;
   max-width: 480px;
   max-height: 90vh;
+  max-height: 90dvh;
   z-index: 101;
   animation: about-popup-slide-in 200ms ease-out;
   display: flex;
@@ -47,9 +49,8 @@
 }
 
 .about-dialog-logo {
-  height: 32px;
+  height: 36px;
   width: auto;
-  border-bottom: 3px solid var(--hud-edge);
 }
 
 .about-dialog-content {
@@ -73,6 +74,7 @@
 .about-dialog-content a {
   color: var(--color-link);
   font-weight: 600;
+  text-decoration: underline;
   text-underline-offset: 3px;
 }
 
@@ -207,10 +209,8 @@
 }
 
 .about-stat-label {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: var(--color-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
   margin-top: 1px;
 }
 
@@ -223,17 +223,7 @@
 
 .about-dialog-tech a {
   color: var(--color-link);
-  text-decoration: none;
   font-weight: 500;
-  outline: none; /* Prevent focus ring on auto-focus */
-}
-
-.about-dialog-tech a:hover {
-  text-decoration: underline;
-}
-
-.about-dialog-tech a:focus-visible {
-  text-decoration: underline; /* Show underline instead of ring for keyboard users */
 }
 
 .about-dialog-button-container {
@@ -319,6 +309,7 @@
   .about-dialog-popup {
     width: 94%;
     max-height: 85vh;
+    max-height: 85dvh;
   }
 
   .about-dialog-title {

@@ -1,8 +1,10 @@
+// Modified by sav-maya
 import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { REFILL_INTERVAL_MS, useQuota } from "../../../../src/contexts/quota-context"
 import { TeamProvider } from "../../../../src/contexts/team-context"
 import { MoveDial } from "../../../../src/components/ui/MoveDial"
+import { TEAM_COLORS } from "../../../../shared/teams"
 
 vi.mock("../../../../src/contexts/quota-context", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../../../src/contexts/quota-context")>()),
@@ -28,7 +30,7 @@ function showDial(remaining = 8, nextRefillAt: number | null = null) {
     localBoxesCompleted: 0,
   })
   return render(
-    <TeamProvider team="BLUE" teamId={1}>
+    <TeamProvider team="JAY" teamId={1}>
       <MoveDial />
     </TeamProvider>,
   )
@@ -52,7 +54,9 @@ describe("MoveDial", () => {
 
   it("uses the player's team colour", () => {
     showDial()
-    expect(screen.getByTestId("move-dial").style.getPropertyValue("--ammo-color")).toBe("#1E88E5")
+    expect(screen.getByTestId("move-dial").style.getPropertyValue("--ammo-color")).toBe(
+      TEAM_COLORS.JAY.primary,
+    )
   })
 
   it("shows the refill state when no moves remain", () => {
@@ -84,7 +88,7 @@ describe("MoveDial", () => {
     for (const remaining of [4, 6]) {
       mockUseQuota.mockReturnValue({ ...quota, remaining })
       rerender(
-        <TeamProvider team="BLUE" teamId={1}>
+        <TeamProvider team="JAY" teamId={1}>
           <MoveDial />
         </TeamProvider>,
       )

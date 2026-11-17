@@ -1,8 +1,11 @@
+// Modified by sav-maya
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties } from "react"
 import { Dialog } from "@base-ui/react/dialog"
-import { TEAMS, TEAM_COLORS } from "../../../shared/teams"
+import { TEAMS, TEAM_COLORS, TEAM_LABELS } from "../../../shared/teams"
+import { GAME_NAME, LEARN_MORE_URL } from "../../../shared/brand"
 import { useTeam } from "../../contexts/team-context"
+import { canTapToConfirm, tapToConfirm } from "../../lib/settings"
 import {
   MAX_QUOTA,
   QUOTA_BONUS_DOUBLE,
@@ -33,8 +36,10 @@ export function AboutDialog({
   isLoading = false,
 }: AboutDialogProps) {
   const { team: userTeam } = useTeam()
-  const userTeamColor = TEAM_COLORS[userTeam].primary
+  const { primary: userTeamColor, ink: buttonTextColor } = TEAM_COLORS[userTeam]
+  const tapTwice = tapToConfirm.use() && canTapToConfirm()
   const contentRef = useRef<HTMLDivElement>(null)
+  const playButtonRef = useRef<HTMLButtonElement>(null)
   const [hasOverflowTop, setHasOverflowTop] = useState(false)
   const [hasOverflowBottom, setHasOverflowBottom] = useState(false)
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
@@ -105,24 +110,18 @@ export function AboutDialog({
 
   const refillSeconds = QUOTA_REFILL_INTERVAL_MS / 1000
 
-  // Format team name for display (capitalize first letter only)
-  const teamDisplayName = userTeam.charAt(0) + userTeam.slice(1).toLowerCase()
-
-  // Yellow team needs dark text for contrast
-  const buttonTextColor = userTeam === `YELLOW` ? `#333` : `white`
-
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="about-dialog-backdrop" />
-        <Dialog.Popup className="about-dialog-popup">
+        <Dialog.Popup className="about-dialog-popup" initialFocus={playButtonRef}>
           <Dialog.Title className={`about-dialog-title${hasOverflowTop ? ` has-overflow` : ``}`}>
-            <img src="/logo.svg" alt="1 Million Boxes" className="about-dialog-logo" />
+            <img src="/logo.svg" alt={GAME_NAME} className="about-dialog-logo" />
           </Dialog.Title>
 
           <div className="about-dialog-content" ref={contentRef}>
             <p>
-              A massive multiplayer{` `}
+              A friendly game of{` `}
               <a
                 href="https://en.wikipedia.org/wiki/Dots_and_boxes"
                 target="_blank"
@@ -131,39 +130,44 @@ export function AboutDialog({
                 Dots &amp; Boxes
               </a>
               {` `}
-              game with{` `}
-              <strong>1,000,000 boxes</strong> on a 1000×1000 grid.
+              for you and your friends, played live on one shared board of{` `}
+              <strong>1,000,000 boxes</strong>.
             </p>
 
-            <h3 className="about-dialog-section-title">How to Play</h3>
+            <h3 className="about-dialog-section-title">How to play</h3>
             <ul className="about-dialog-rules">
               <li>
-                <span className="desktop-only">Click</span>
-                <span className="mobile-only">Tap</span> between two dots to draw a line
+                <span className="desktop-only">Click between two dots to draw a line.</span>
+                <span className="mobile-only">
+                  {tapTwice
+                    ? `Tap a line to pick it, then tap it again to draw it.`
+                    : `Tap between two dots to draw a line.`}
+                </span>
               </li>
-              <li>Complete all four sides of a box to claim it for your team</li>
-              <li>The team with the most boxes wins!</li>
+              <li>Draw the fourth side of a box to claim it for your team.</li>
+              <li>The team with the most boxes wins.</li>
             </ul>
 
-            <h3 className="about-dialog-section-title">Moves &amp; refills</h3>
+            <h3 className="about-dialog-section-title">Moves</h3>
             <ul className="about-dialog-rules">
               <li>
-                You have up to <strong>{MAX_QUOTA} moves</strong> available at a time
+                You can hold up to <strong>{MAX_QUOTA} moves</strong> at a time.
               </li>
               <li>
-                Moves refill by <strong>1 every {refillSeconds} seconds</strong>
+                You get <strong>1 move back every {refillSeconds} seconds</strong>.
               </li>
               <li>
-                <strong>Bonus:</strong> Completing a box gives you{` `}
-                <strong>+{QUOTA_BONUS_SINGLE} moves</strong> (refund + bonus)
+                Claim a box and you get <strong>{QUOTA_BONUS_SINGLE} moves</strong> back.
               </li>
               <li>
-                Complete 2 boxes with one line? Get{` `}
-                <strong>+{QUOTA_BONUS_DOUBLE} moves</strong> back!
+                Claim two boxes with one line and you get{" "}
+                <strong>{QUOTA_BONUS_DOUBLE} moves</strong>
+                {` `}
+                back.
               </li>
             </ul>
 
-            <h3 className="about-dialog-section-title">Team Leaderboard</h3>
+            <h3 className="about-dialog-section-title">Team scores</h3>
             <div className="about-dialog-leaderboard">
               {isLoading
                 ? TEAMS.map((team, index) => (
@@ -185,9 +189,7 @@ export function AboutDialog({
                     >
                       <span className="about-leaderboard-rank">{index + 1}</span>
                       <span className="about-leaderboard-dot" style={{ background: color }} />
-                      <span className="about-leaderboard-team">
-                        {team.charAt(0) + team.slice(1).toLowerCase()}
-                      </span>
+                      <span className="about-leaderboard-team">{TEAM_LABELS[team]}</span>
                       <span className="about-leaderboard-score">{score.toLocaleString()}</span>
                     </div>
                   ))}
@@ -221,13 +223,9 @@ export function AboutDialog({
               >
                 Neon Realtime
               </a>
-              {` `}for real-time synchronization,{` `}
-              <a
-                href="https://github.com/samwillis/one-million-boxes"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                learn how we built it
+              , which keeps every board in sync.{` `}
+              <a href={LEARN_MORE_URL} target="_blank" rel="noopener noreferrer">
+                See how it&apos;s built
               </a>
               .
             </p>
@@ -237,13 +235,14 @@ export function AboutDialog({
             className={`about-dialog-button-container${hasOverflowBottom ? ` has-overflow` : ``}`}
           >
             <Dialog.Close
+              ref={playButtonRef}
               className="about-dialog-close-button"
               style={{
                 background: userTeamColor,
                 color: buttonTextColor,
               }}
             >
-              You're on the {teamDisplayName} team, Play!
+              Play for the {TEAM_LABELS[userTeam]} team
             </Dialog.Close>
           </div>
         </Dialog.Popup>

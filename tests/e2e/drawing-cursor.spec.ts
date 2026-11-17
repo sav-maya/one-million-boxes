@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { expect, test } from "@playwright/test"
 import { openGame } from "./helpers"
 import { TEAM_COLORS, TEAMS } from "../../shared/teams"
@@ -94,7 +95,7 @@ test("dial animates the server-aligned refill, shows empty ammo, and respects re
   await expect(page.getByTestId("cursor-ammo")).toHaveAttribute("data-empty", "true")
   await expect(page.getByTestId("cursor-ammo").getByText("Refill", { exact: true })).toBeVisible()
   const toast = page.getByTestId("error-toast")
-  await expect(toast).toContainText("Out of moves! Recharging...")
+  await expect(toast).toContainText("Out of moves. You get one back every 3 seconds.")
   const dialTransform = () =>
     page.getByTestId("cursor-ammo").evaluate((el) => getComputedStyle(el).transform)
   await expect.poll(dialTransform).not.toBe("none")
@@ -181,7 +182,7 @@ test("empty moves and reduced motion skip pencil strokes", async ({ page }) => {
   await page.mouse.move(bounds.x + position.x, bounds.y + position.y)
   await expect(page.getByTestId("cursor-ammo-count")).toHaveText("0")
   await canvas.click({ position })
-  await expect(page.getByTestId("error-toast")).toContainText("Out of moves!")
+  await expect(page.getByTestId("error-toast")).toContainText("Out of moves.")
   await expect(page.getByTestId("drawing-pencil")).toHaveAttribute("data-drawing", "false")
 
   await page.emulateMedia({ reducedMotion: "reduce" })

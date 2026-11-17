@@ -1,6 +1,7 @@
+/* Modified by sav-maya */
 .error-toast {
   position: fixed;
-  bottom: 80px;
+  bottom: calc(80px + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
@@ -60,4 +61,13 @@
 
 .error-toast__message {
   flex: 1;
+}
+
+/* On phones the controls stack higher; keep messages clear of the dial and zoom buttons. */
+@media (max-width: 600px) {
+  .error-toast {
+    bottom: calc(176px + var(--safe-bottom));
+    width: max-content;
+    max-width: calc(100% - 32px - var(--safe-left) - var(--safe-right));
+  }
 }

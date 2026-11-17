@@ -1,3 +1,4 @@
+// Modified by sav-maya
 import { expect, test } from "@playwright/test"
 import { openGame } from "./helpers"
 
@@ -28,7 +29,7 @@ test.describe(`Game Flow`, () => {
     await expect(teamName).toBeVisible()
 
     const text = await teamName.textContent()
-    expect([`Red Team`, `Blue Team`, `Green Team`, `Yellow Team`]).toContain(text)
+    expect([`Fox team`, `Jay team`, `Frog team`, `Flamingo team`]).toContain(text)
 
     // Team color dot should be visible
     const colorDot = page.getByTestId(`team-color-dot`).filter({ visible: true })

@@ -1,0 +1,106 @@
+.minimap-settings-button {
+  border-radius: var(--hud-radius);
+  box-shadow: var(--hud-shadow);
+}
+
+.minimap-settings-button[data-popup-open] {
+  background: var(--color-surface-active);
+}
+
+.settings-positioner {
+  z-index: 150;
+}
+
+.settings-popup {
+  width: min(280px, calc(100vw - 24px - var(--safe-left) - var(--safe-right)));
+  padding: 14px 16px 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: var(--hud-border-width) solid var(--hud-outline);
+  border-radius: var(--hud-radius);
+  box-shadow:
+    var(--hud-shadow),
+    0 12px 32px rgb(19 20 21 / 14%);
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 150ms ease,
+    transform 150ms ease;
+}
+
+.settings-popup[data-starting-style],
+.settings-popup[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.settings-title {
+  font-size: 0.9375rem;
+  font-weight: 750;
+  margin-bottom: 4px;
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--touch-min);
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.settings-row + .settings-row {
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.settings-label {
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.settings-description {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+
+/* Unchecked track has 3.3:1 against white; checked uses the ink colour. */
+.settings-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 40px;
+  height: 24px;
+  padding: 2px;
+  border-radius: 999px;
+  background: #8a8d93;
+  transition: background-color var(--transition-fast);
+}
+
+.settings-switch[data-checked] {
+  background: var(--color-text);
+}
+
+.settings-switch:focus-visible {
+  outline: 2px solid var(--color-link);
+  outline-offset: 2px;
+}
+
+.settings-switch-thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 1px 2px rgb(19 20 21 / 30%);
+  transition: transform var(--transition-fast);
+}
+
+.settings-switch-thumb[data-checked] {
+  transform: translateX(16px);
+}

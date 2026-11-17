@@ -3,11 +3,11 @@ allowBuilds:
   pg-formatter: true
 
 minimumReleaseAgeExclude:
-  - "@neon/config-runtime@1.9.1"
-  - "@neon/config@1.9.1"
+  - "@neon/config-runtime@1.9.1 || 1.12.4"
+  - "@neon/config@1.9.1 || 1.14.1"
   - "@neon/realtime@0.0.1"
-  - "@neon/sdk@7.2.0"
-  - neon@8.4.2
+  - "@neon/sdk@7.2.0 || 7.13.1"
+  - neon@8.4.2 || 9.5.1
   - "@neon/env@1.6.1"
 
 overrides:

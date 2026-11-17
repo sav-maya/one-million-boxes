@@ -1,9 +1,12 @@
+// Modified by sav-maya
 import { useCallback, useEffect, useRef } from "react"
 import type { RefObject } from "react"
 
 interface PanZoomOptions {
   onPan: (deltaX: number, deltaY: number) => void
   onZoom: (newZoom: number, focalX?: number, focalY?: number) => void
+  /** Return false to treat a quick second tap at (x, y) as a plain tap. */
+  allowDoubleTapZoom?: (x: number, y: number) => boolean
 }
 
 interface TouchPoint {
@@ -46,13 +49,15 @@ const MOMENTUM_MIN_VELOCITY = 0.05 // px/ms - minimum velocity to continue
  * and touch gestures (single touch pan, pinch to zoom, double-tap to zoom).
  */
 export function usePanZoom(containerRef: RefObject<HTMLElement | null>, options: PanZoomOptions) {
-  const { onPan, onZoom } = options
+  const { onPan, onZoom, allowDoubleTapZoom } = options
 
   // Store callbacks in refs to avoid re-render cascades during momentum animation
   const onPanRef = useRef(onPan)
   const onZoomRef = useRef(onZoom)
+  const allowDoubleTapZoomRef = useRef(allowDoubleTapZoom)
   onPanRef.current = onPan
   onZoomRef.current = onZoom
+  allowDoubleTapZoomRef.current = allowDoubleTapZoom
 
   const isPanning = useRef(false)
   const lastPos = useRef({ x: 0, y: 0 })
@@ -210,12 +215,17 @@ export function usePanZoom(containerRef: RefObject<HTMLElement | null>, options:
         const dy = touch.y - lastTapPos.current.y
         const distance = Math.sqrt(dx * dx + dy * dy)
 
-        if (timeDiff < DOUBLE_TAP_DELAY && distance < DOUBLE_TAP_DISTANCE) {
+        const isDoubleTap = timeDiff < DOUBLE_TAP_DELAY && distance < DOUBLE_TAP_DISTANCE
+        if (isDoubleTap && (allowDoubleTapZoomRef.current?.(touch.x, touch.y) ?? true)) {
           // Double-tap detected - zoom in
           const newZoom = currentZoom.current * DOUBLE_TAP_ZOOM_FACTOR
           currentZoom.current = newZoom
           onZoomRef.current(newZoom, touch.x, touch.y)
           lastTapTime.current = 0 // Reset to prevent triple-tap
+        } else if (isDoubleTap) {
+          // A declined double-tap (such as confirming a selected edge) must
+          // not start another double-tap.
+          lastTapTime.current = 0
         } else {
           lastTapTime.current = now
           lastTapPos.current = { x: touch.x, y: touch.y }

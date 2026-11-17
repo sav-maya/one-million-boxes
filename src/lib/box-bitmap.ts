@@ -1,15 +1,13 @@
+// Modified by sav-maya
+import { TEAMS, TEAM_COLORS } from "../../shared/teams"
 import { GRID_HEIGHT, GRID_WIDTH } from "./config"
 
 /**
- * RGB color values for each team.
- * Matches the primary colors from teams.ts but in RGB format.
+ * RGB color values for each team, in team ID order.
  */
-const TEAM_COLORS_RGB: Array<{ r: number; g: number; b: number }> = [
-  { r: 229, g: 57, b: 53 }, // RED: #E53935
-  { r: 30, g: 136, b: 229 }, // BLUE: #1E88E5
-  { r: 67, g: 160, b: 71 }, // GREEN: #43A047
-  { r: 253, g: 216, b: 53 }, // YELLOW: #FDD835
-]
+const TEAM_COLORS_RGB: Array<{ r: number; g: number; b: number }> = TEAMS.map(
+  (team) => TEAM_COLORS[team].rgb,
+)
 
 // Background color for unclaimed boxes
 const BG_COLOR = { r: 250, g: 250, b: 250 } // Match the main canvas and --color-bg
