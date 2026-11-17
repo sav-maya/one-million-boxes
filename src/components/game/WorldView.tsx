@@ -1,6 +1,6 @@
 import { ZoomControls } from "../ui/ZoomControls"
 import { SoundButton } from "../ui/SoundButton"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef } from "react"
 import { W, edgeIdToCoords } from "../../../shared/edge-math"
 import { useViewStateContext } from "../../hooks/useViewState"
 import { useGameStateContext } from "../../contexts/game-state-context"
@@ -9,6 +9,12 @@ import { MinimapRenderer } from "./MinimapRenderer"
 import "./WorldView.css"
 
 const POP_DURATION = 800 // ms - should match CSS animation
+
+// The popover's positioning code stays out of the initial bundle. The controls
+// column is bottom-aligned, so the button appears without moving anything.
+const SettingsButton = lazy(() =>
+  import("../ui/SettingsButton").then((module) => ({ default: module.SettingsButton })),
+)
 
 export function WorldView() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -112,6 +118,9 @@ export function WorldView() {
   return (
     <div className="world-view-wrapper">
       <div className="world-view-controls">
+        <Suspense fallback={null}>
+          <SettingsButton />
+        </Suspense>
         <SoundButton />
         <ZoomControls className="minimap-zoom-controls" />
       </div>

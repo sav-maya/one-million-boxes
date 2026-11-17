@@ -4,6 +4,7 @@ import { Dialog } from "@base-ui/react/dialog"
 import { TEAMS, TEAM_COLORS, TEAM_LABELS } from "../../../shared/teams"
 import { GAME_NAME, LEARN_MORE_URL } from "../../../shared/brand"
 import { useTeam } from "../../contexts/team-context"
+import { canTapToConfirm, tapToConfirm } from "../../lib/settings"
 import {
   MAX_QUOTA,
   QUOTA_BONUS_DOUBLE,
@@ -35,6 +36,7 @@ export function AboutDialog({
 }: AboutDialogProps) {
   const { team: userTeam } = useTeam()
   const { primary: userTeamColor, ink: buttonTextColor } = TEAM_COLORS[userTeam]
+  const tapTwice = tapToConfirm.use() && canTapToConfirm()
   const contentRef = useRef<HTMLDivElement>(null)
   const playButtonRef = useRef<HTMLButtonElement>(null)
   const [hasOverflowTop, setHasOverflowTop] = useState(false)
@@ -134,8 +136,12 @@ export function AboutDialog({
             <h3 className="about-dialog-section-title">How to play</h3>
             <ul className="about-dialog-rules">
               <li>
-                <span className="desktop-only">Click</span>
-                <span className="mobile-only">Tap</span> between two dots to draw a line.
+                <span className="desktop-only">Click between two dots to draw a line.</span>
+                <span className="mobile-only">
+                  {tapTwice
+                    ? `Tap a line to pick it, then tap it again to draw it.`
+                    : `Tap between two dots to draw a line.`}
+                </span>
               </li>
               <li>Draw the fourth side of a box to claim it for your team.</li>
               <li>The team with the most boxes wins.</li>

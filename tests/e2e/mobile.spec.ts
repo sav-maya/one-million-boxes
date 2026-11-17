@@ -185,6 +185,31 @@ test.describe(`Touch Interactions`, () => {
     }
   })
 
+  test(`the first tap selects a line and a second tap draws it`, async ({ page }) => {
+    let draws = 0
+    // Keep the shared fixture board unchanged.
+    await page.route(`**/api/draw`, async (route) => {
+      draws++
+      await route.fulfill({
+        status: 409,
+        json: { ok: false, code: `EDGE_TAKEN`, quotaRemaining: 8, refillIn: 0 },
+      })
+    })
+    await openGame(page)
+    const bounds = (await page.getByTestId(`game-canvas`).boundingBox())!
+    const x = bounds.x + bounds.width / 2 + 10
+    const y = bounds.y + bounds.height / 2 + 60
+
+    await page.touchscreen.tap(x, y)
+    await page.waitForTimeout(400)
+    expect(draws).toBe(0)
+
+    const drawn = page.waitForRequest(`**/api/draw`)
+    await page.touchscreen.tap(x, y)
+    await drawn
+    expect(draws).toBe(1)
+  })
+
   test(`zoom buttons respond to touch`, async ({ page }) => {
     await openGame(page)
 

@@ -3,6 +3,14 @@ import { useViewStateContext } from "../../hooks/useViewState"
 import { useGameState } from "../../hooks/useGameState"
 import { usePanZoom } from "../../hooks/usePanZoom"
 import { useQuota } from "../../contexts/quota-context"
+import { useTeam } from "../../contexts/team-context"
+import { tapToConfirm } from "../../lib/settings"
+import {
+  isConfirmTap,
+  resolveTap,
+  selectionAfterBoardUpdate,
+  selectionAfterCommit,
+} from "../../lib/tap-selection"
 import {
   getScale,
   getVisibleBounds,
@@ -19,6 +27,7 @@ import { renderBoxes } from "./BoxRenderer"
 import { renderEdges } from "./EdgeRenderer"
 import { renderDots } from "./DotRenderer"
 import { DrawingCursor } from "./DrawingCursor"
+import type { SelectedEdge } from "./EdgeRenderer"
 import type { DebugConfig } from "../../lib/debug-config"
 import "./GameCanvas.css"
 
@@ -54,6 +63,22 @@ export function GameCanvas() {
     isGameComplete,
   } = useGameState()
   const { setBonusPosition } = useQuota()
+  const { team } = useTeam()
+  const teamColor = TEAM_COLORS[team]
+  const tapToConfirmEnabled = tapToConfirm.use()
+  const [selectedEdgeId, setSelectedEdgeId] = useState<number | null>(null)
+  const selectedEdgeRef = useRef<number | null>(null)
+  // A pending touch selection: the player's team colour, translucent and dashed.
+  const selection = useMemo<SelectedEdge | null>(
+    () =>
+      selectedEdgeId === null
+        ? null
+        : {
+            edgeId: selectedEdgeId,
+            color: `rgba(${teamColor.rgb.r}, ${teamColor.rgb.g}, ${teamColor.rgb.b}, 0.6)`,
+          },
+    [selectedEdgeId, teamColor],
+  )
   const [hoveredEdge, setHoveredEdge] = useState<number | null>(null)
   const lastEdgeScreenPosRef = useRef<{ x: number; y: number } | null>(null)
   const { ripples, addRipple } = useTouchFeedback()
@@ -63,6 +88,7 @@ export function GameCanvas() {
   const prevCanvasSizeRef = useRef<typeof canvasSize | null>(null)
   const prevHoveredEdgeRef = useRef<number | null>(null)
   const prevPendingEdgeRef = useRef<number | null>(null)
+  const prevSelectedEdgeRef = useRef<number | null>(null)
   const prevDebugConfigRef = useRef<DebugConfig | null>(null)
   const lastProcessedEventIdRef = useRef<number>(-1)
   const zoomRedrawTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -74,6 +100,7 @@ export function GameCanvas() {
     canvasSize,
     pendingEdge,
     hoveredEdge,
+    selection,
     debugConfig,
     gameState,
     boxBitmap,
@@ -118,6 +145,14 @@ export function GameCanvas() {
         zoomTo(newZoom)
       }
     },
+    // Two quick taps on the selected edge confirm the move rather than zoom.
+    allowDoubleTapZoom: (x, y) => {
+      const selected = selectedEdgeRef.current
+      if (selected === null) return true
+      const { view: currentView, canvasSize: size } = latestStateRef.current
+      const world = screenToWorld(x, y, currentView, size.width, size.height)
+      return !isConfirmTap(selected, findNearestEdge(world.x, world.y, getScale(currentView), true))
+    },
   })
 
   // Sync external zoom changes with usePanZoom
@@ -131,11 +166,23 @@ export function GameCanvas() {
       canvasSize,
       pendingEdge,
       hoveredEdge,
+      selection,
       debugConfig,
       gameState,
       boxBitmap,
     }
-  }, [view, canvasSize, pendingEdge, hoveredEdge, debugConfig, gameState, boxBitmap])
+    selectedEdgeRef.current = selection?.edgeId ?? null
+  }, [view, canvasSize, pendingEdge, hoveredEdge, selection, debugConfig, gameState, boxBitmap])
+
+  // Drop the selection when Realtime hands its edge to someone else, the game
+  // ends, or the player switches tap-to-confirm off.
+  useEffect(() => {
+    setSelectedEdgeId((current) =>
+      !tapToConfirmEnabled || isGameComplete
+        ? null
+        : selectionAfterBoardUpdate(current, (edgeId) => gameState.isEdgeTaken(edgeId)),
+    )
+  }, [version, gameState, tapToConfirmEnabled, isGameComplete])
 
   const setupCanvas = useCallback(
     (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
@@ -162,6 +209,7 @@ export function GameCanvas() {
         canvasSize: typeof canvasSize
         pendingEdge: typeof pendingEdge
         hoveredEdge: typeof hoveredEdge
+        selection: typeof selection
         debugConfig: typeof debugConfig
         gameState: typeof gameState
         boxBitmap: typeof boxBitmap
@@ -174,6 +222,7 @@ export function GameCanvas() {
         canvasSize: renderCanvasSize,
         pendingEdge: renderPendingEdge,
         hoveredEdge: renderHoveredEdge,
+        selection: renderSelection,
         debugConfig: renderDebugConfig,
         gameState: renderGameState,
         boxBitmap: renderBoxBitmap,
@@ -214,6 +263,7 @@ export function GameCanvas() {
         renderDebugConfig.renderDrawnLines,
         bounds,
         drawingEdgeRef.current,
+        renderSelection,
       )
 
       if (renderDebugConfig.renderDots) {
@@ -347,6 +397,7 @@ export function GameCanvas() {
       canvasSize,
       pendingEdge,
       hoveredEdge,
+      selection,
       debugConfig,
       gameState,
       boxBitmap,
@@ -365,6 +416,7 @@ export function GameCanvas() {
       prevDebugConfigRef.current = debugConfig
       prevHoveredEdgeRef.current = hoveredEdge
       prevPendingEdgeRef.current = pendingEdge
+      prevSelectedEdgeRef.current = selectedEdgeId
       return
     }
 
@@ -392,6 +444,7 @@ export function GameCanvas() {
       prevDebugConfigRef.current = debugConfig
       prevHoveredEdgeRef.current = hoveredEdge
       prevPendingEdgeRef.current = pendingEdge
+      prevSelectedEdgeRef.current = selectedEdgeId
       return
     }
 
@@ -402,6 +455,7 @@ export function GameCanvas() {
       prevDebugConfigRef.current = debugConfig
       prevHoveredEdgeRef.current = hoveredEdge
       prevPendingEdgeRef.current = pendingEdge
+      prevSelectedEdgeRef.current = selectedEdgeId
       return
     }
 
@@ -497,6 +551,7 @@ export function GameCanvas() {
       prevDebugConfigRef.current = debugConfig
       prevHoveredEdgeRef.current = hoveredEdge
       prevPendingEdgeRef.current = pendingEdge
+      prevSelectedEdgeRef.current = selectedEdgeId
       return
     }
 
@@ -550,10 +605,16 @@ export function GameCanvas() {
     const edgeIdsToRedraw = new Set<number>()
     const prevPending = prevPendingEdgeRef.current
     const prevHovered = prevHoveredEdgeRef.current
+    const prevSelected = prevSelectedEdgeRef.current
 
     if (prevPending !== pendingEdge) {
       if (prevPending !== null) edgeIdsToRedraw.add(prevPending)
       if (pendingEdge !== null) edgeIdsToRedraw.add(pendingEdge)
+    }
+
+    if (prevSelected !== selectedEdgeId) {
+      if (prevSelected !== null) edgeIdsToRedraw.add(prevSelected)
+      if (selectedEdgeId !== null) edgeIdsToRedraw.add(selectedEdgeId)
     }
 
     if (prevHovered !== hoveredEdge) {
@@ -606,6 +667,7 @@ export function GameCanvas() {
     prevDebugConfigRef.current = debugConfig
     prevHoveredEdgeRef.current = hoveredEdge
     prevPendingEdgeRef.current = pendingEdge
+    prevSelectedEdgeRef.current = selectedEdgeId
   }, [
     boxBitmap,
     canvasSize,
@@ -618,6 +680,8 @@ export function GameCanvas() {
     recentEvents,
     renderLayers,
     scheduleZoomRedraw,
+    selectedEdgeId,
+    selection,
     setupCanvas,
     view,
     version,
@@ -780,24 +844,49 @@ export function GameCanvas() {
 
       const worldPos = screenToWorld(x, y, view, canvasSize.width, canvasSize.height)
       const edgeId = findNearestEdge(worldPos.x, worldPos.y, getScale(view), true)
+      // Set bonus position for toast (use client coordinates)
+      const tapPosition = { x: touchStartPos.current.x, y: touchStartPos.current.y }
+      touchStartPos.current = null
 
-      if (edgeId !== null) {
-        // Add visual feedback
-        addRipple(x, y)
-        // Haptic feedback
-        triggerHapticFeedback(15)
-        // Set bonus position for toast (use client coordinates)
-        setBonusPosition({
-          x: touchStartPos.current.x,
-          y: touchStartPos.current.y,
-        })
-        // Place the edge
-        placeEdge(edgeId)
+      if (!tapToConfirmEnabled) {
+        if (edgeId !== null) {
+          addRipple(x, y)
+          triggerHapticFeedback(15)
+          setBonusPosition(tapPosition)
+          placeEdge(edgeId)
+        }
+        return
       }
 
-      touchStartPos.current = null
+      // Tap-to-confirm: the first tap selects, a second tap on it draws.
+      const action = resolveTap(selectedEdgeRef.current, edgeId, (id) => gameState.isEdgeTaken(id))
+      if (action.type === `select`) {
+        addRipple(x, y, teamColor.primary)
+        setSelectedEdgeId(action.edgeId)
+      } else if (action.type === `commit`) {
+        addRipple(x, y, teamColor.primary)
+        triggerHapticFeedback(15)
+        setBonusPosition(tapPosition)
+        // Out of moves shows the usual feedback and keeps the selection.
+        const accepted = placeEdge(action.edgeId)
+        setSelectedEdgeId((current) =>
+          current === action.edgeId ? selectionAfterCommit(current, accepted) : current,
+        )
+      } else if (action.type === `clear`) {
+        setSelectedEdgeId(null)
+      }
     },
-    [view, canvasSize, placeEdge, addRipple, isGameComplete, setBonusPosition],
+    [
+      view,
+      canvasSize,
+      placeEdge,
+      addRipple,
+      isGameComplete,
+      setBonusPosition,
+      tapToConfirmEnabled,
+      gameState,
+      teamColor,
+    ],
   )
 
   return (

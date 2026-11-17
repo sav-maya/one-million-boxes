@@ -248,6 +248,25 @@ Edge picking covers the full line segment and its endpoints, selecting the
 nearest line where hit areas overlap. Mouse and touch retain separate hit widths
 and minimum zoom levels.
 
+Touch drawing uses tap-to-confirm, because a mis-tap wastes a scarce move and
+can hand another team a box. The first tap on a free edge selects it and draws
+a thicker, dashed, translucent highlight in the player's team colour as part of
+normal rendering; changing the selection repaints only the affected edge
+strips. A second tap on the selected edge commits it through the normal draw
+path with the same client checks, sounds and quota updates. A quick second tap
+on the selected edge is a confirmation, not a double-tap zoom. Tapping another
+free edge moves the selection, and tapping empty space or a taken edge clears
+it. The selection survives pan and zoom and clears when Realtime reports that
+someone took the edge. Out of moves shows the usual feedback and keeps the
+selection. The highlight never animates. `src/lib/tap-selection.ts` holds these
+rules as pure functions. Mouse drawing is unchanged.
+
+A settings button above the sound toggle opens a popover with two switches,
+both on by default and stored in local storage like the sound preference:
+“Tap twice to draw” (shown on touch devices) and “Vibration” (shown where
+`navigator.vibrate` exists). Turning off the first restores immediate touch
+drawing.
+
 Local moves play a short synthesized pencil scratch after passing client checks.
 The draw response plays a rising chime when it confirms one or two box claims.
 Snapshots and other players' moves stay silent. Web Audio starts lazily from a

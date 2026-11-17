@@ -25,7 +25,7 @@ export interface GameStateContextValue {
   gameState: GameState
   boxBitmap: BoxBitmap
   pendingEdge: number | null
-  placeEdge: (edgeId: number) => void
+  placeEdge: (edgeId: number) => boolean
   isConnected: boolean
   isLoading: boolean
   isReadyToRender: boolean
@@ -241,31 +241,9 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
     onGameStartTimestamp: handleGameStartTimestamp,
   })
 
-  // Place an edge on the board
-  const placeEdge = useCallback(
+  // Send an accepted move to the API and reconcile the response.
+  const submitDraw = useCallback(
     async (edgeId: number) => {
-      if (!isConnected || !initialSyncCompleteRef.current) return
-      // Clear any previous error on new attempt
-      setError(null)
-
-      // Check if edge is already taken
-      if (gameStateRef.current.isEdgeTaken(edgeId)) {
-        return
-      }
-
-      // Optimistically consume quota (will be synced from server response)
-      if (!consume()) {
-        setError(OUT_OF_MOVES_MESSAGE)
-        return
-      }
-
-      // Set pending edge for optimistic UI
-      setPendingEdge(edgeId)
-      playPencilSound()
-
-      // Track as local edge for pop animation filtering
-      localEdgeIdsRef.current.add(edgeId)
-
       try {
         const response = await fetch(`/api/draw`, {
           method: `POST`,
@@ -337,7 +315,39 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
         setError(`We couldn't reach the game. Check your connection and try again.`)
       }
     },
-    [consume, syncFromServer, refund, teamId, awaitTxId, reconnect, isConnected, notifyNoMoves],
+    [syncFromServer, refund, teamId, awaitTxId, reconnect, notifyNoMoves],
+  )
+
+  // Place an edge on the board. Returns whether the move passed the client
+  // checks and was sent, so touch selection can keep an edge that was not.
+  const placeEdge = useCallback(
+    (edgeId: number): boolean => {
+      if (!isConnected || !initialSyncCompleteRef.current) return false
+      // Clear any previous error on new attempt
+      setError(null)
+
+      // Check if edge is already taken
+      if (gameStateRef.current.isEdgeTaken(edgeId)) {
+        return false
+      }
+
+      // Optimistically consume quota (will be synced from server response)
+      if (!consume()) {
+        setError(OUT_OF_MOVES_MESSAGE)
+        return false
+      }
+
+      // Set pending edge for optimistic UI
+      setPendingEdge(edgeId)
+      playPencilSound()
+
+      // Track as local edge for pop animation filtering
+      localEdgeIdsRef.current.add(edgeId)
+
+      void submitDraw(edgeId)
+      return true
+    },
+    [consume, isConnected, submitDraw],
   )
 
   const value: GameStateContextValue = {
