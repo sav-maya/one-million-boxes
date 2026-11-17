@@ -3,6 +3,7 @@ import { GameState } from "../../shared/game-state"
 import { GAME_START_TIMESTAMP_KEY, QUOTA_REFILL_INTERVAL_MS } from "../../shared/game-config"
 import { BoxBitmap } from "../lib/box-bitmap"
 import { playBoxSound, playPencilSound } from "../lib/game-sounds"
+import { buzz } from "../haptics"
 import { useBoardRealtime } from "../hooks/useBoardRealtime"
 import { useTeam } from "./team-context"
 import { QUOTA_KEY, useQuota } from "./quota-context"
@@ -253,7 +254,10 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
         const result = await response.json()
 
         if (result.ok) {
-          if (typeof result.boxesClaimed === "number") playBoxSound(result.boxesClaimed)
+          if (typeof result.boxesClaimed === "number") {
+            playBoxSound(result.boxesClaimed)
+            if (result.boxesClaimed > 0) buzz([20, 40, 20])
+          }
           // Success - Realtime will confirm the committed transaction.
           // Sync quota from server (includes any refunds for completed boxes)
           if (typeof result.quotaRemaining === `number`) {
@@ -280,6 +284,7 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
             case `QUOTA_EXHAUSTED`:
               // Server says no quota - already synced above
               notifyNoMoves()
+              buzz(60)
               setError(OUT_OF_MOVES_MESSAGE)
               break
             case `NO_IDENTITY`:
@@ -333,6 +338,7 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
 
       // Optimistically consume quota (will be synced from server response)
       if (!consume()) {
+        buzz(60)
         setError(OUT_OF_MOVES_MESSAGE)
         return false
       }
@@ -340,6 +346,7 @@ export function GameStateProvider({ children }: GameStateProviderProps) {
       // Set pending edge for optimistic UI
       setPendingEdge(edgeId)
       playPencilSound()
+      buzz(10)
 
       // Track as local edge for pop animation filtering
       localEdgeIdsRef.current.add(edgeId)

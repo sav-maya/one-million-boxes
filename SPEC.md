@@ -274,6 +274,12 @@ draw gesture; the sound toggle above the zoom controls persists its preference i
 and immediately silences scheduled sounds. Sound is enabled by default and
 audio failures do not affect gameplay.
 
+Haptics follow the same moments through `buzz()` in `src/haptics.ts`: 10ms with
+the local pencil scratch, `[20, 40, 20]` with the box-claim chime, and 60ms when
+the out-of-moves feedback fires. It does nothing without the Vibration API (for
+example iOS Safari) or when the Vibration setting is off, and never vibrates for
+snapshots or other players' moves.
+
 `pnpm simulate` adds synthetic play through `GameStore.draw()` and the normal
 Postgres draw function. Bots use distinct identities, four teams and real quotas;
 no board reset or direct packed-state writes are needed. An unpaced run seeds

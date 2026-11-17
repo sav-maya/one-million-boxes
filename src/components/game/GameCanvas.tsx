@@ -36,15 +36,6 @@ const POP_DURATION = 800 // ms - should match CSS animation
 // Match --color-bg so the board, overview bitmap, and surrounding UI agree.
 const BACKGROUND_COLOR = `#FAFAFA`
 
-/**
- * Trigger haptic feedback if available
- */
-function triggerHapticFeedback(pattern: number | Array<number> = 10) {
-  if (`vibrate` in navigator) {
-    navigator.vibrate(pattern)
-  }
-}
-
 export function GameCanvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawingEdgeRef = useRef<{ edgeId: number; progress: number } | null>(null)
@@ -799,7 +790,6 @@ export function GameCanvas() {
       if (edgeId !== null) {
         setBonusPosition({ x: e.clientX, y: e.clientY })
         placeEdge(edgeId)
-        triggerHapticFeedback(15)
       }
     },
     [view, canvasSize, placeEdge, isGameComplete, setBonusPosition],
@@ -851,7 +841,6 @@ export function GameCanvas() {
       if (!tapToConfirmEnabled) {
         if (edgeId !== null) {
           addRipple(x, y)
-          triggerHapticFeedback(15)
           setBonusPosition(tapPosition)
           placeEdge(edgeId)
         }
@@ -865,7 +854,6 @@ export function GameCanvas() {
         setSelectedEdgeId(action.edgeId)
       } else if (action.type === `commit`) {
         addRipple(x, y, teamColor.primary)
-        triggerHapticFeedback(15)
         setBonusPosition(tapPosition)
         // Out of moves shows the usual feedback and keeps the selection.
         const accepted = placeEdge(action.edgeId)
